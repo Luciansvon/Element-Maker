@@ -223,3 +223,7 @@
         - Mas Bima membutuhkan arsip zip yang hanya berisi *pure script* (kode sumber murni) tanpa model AI lokal yang berat (tanpa `isnet-general-use.onnx`, tanpa binary `realesrgan-ncnn-vulkan.exe`, tanpa `models/*.bin`, tanpa `.venv`, tanpa `node_modules`, dan tanpa `target/`).
         - Tujuannya adalah untuk diunggah langsung ke Gemini App guna keperluan penelaahan dan audit kode secara mandiri.
         - Solusi: Dibuatkan arsip `Element-Maker-PureScript.zip` langsung di Desktop dengan ukuran sangat ringan (~1 MB) yang berisi seluruh logika React, Tauri Rust, FastAPI, skrip pengujian, dan dokumentasi arsitektur.
+      - **Ekstraksi Kode ke Satu File Teks Biasa (kode_lengkap.txt) untuk Gemini Web (Temuan 14 Okt 2026)**:
+        - Gemini Web App tidak dapat mengekstrak berkas `.zip` secara otomatis di jendela obrolan, melainkan membaca teks mentah tidak terkompresi.
+        - Solusi: Seluruh kode proyek digabung menjadi satu berkas teks terstruktur `kode_lengkap.txt` (~885 KB) yang dilengkapi penanda nama file `=== FILE: ... ===`.
+        - Berkas diletakkan langsung di layar Desktop (`C:\Users\shint\Desktop\kode_lengkap.txt`) agar Mas Bima bisa langsung mengunggahnya ke Gemini App dalam satu langkah mudah.

@@ -46,3 +46,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+
+# Local Exports & Dumps
+kode_lengkap.txt
+*.zip
