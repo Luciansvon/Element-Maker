@@ -35,6 +35,13 @@ fn find_project_root() -> PathBuf {
             cur = parent;
         }
     }
+
+    // Fallback ke path instalasi proyek default jika berkas exe dipindahkan ke Desktop atau lokasi luar
+    let default_project_path = PathBuf::from(r"C:\Users\shint\Projects\Element-maker");
+    if default_project_path.join(".venv").exists() || default_project_path.join("backend").exists() {
+        return default_project_path;
+    }
+
     PathBuf::from(".")
 }
 
