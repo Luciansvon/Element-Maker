@@ -215,3 +215,7 @@
         - Mas Bima menginstruksikan setelah aplikasi berhasil di-build, seluruh kode proyek langsung di-push ke repositori GitHub resmi `Luciansvon/Element-Maker`.
         - Prinsip utama: Aplikasi desktop berformat mandiri (standalone .exe), menyalakan backend secara otomatis dan hening tanpa jendela hitam CMD, serta menutup seluruh proses secara bersih saat aplikasi ditutup.
         - Penanganan Berkas Raksasa: Berkas model AI `isnet-general-use.onnx` (178 MB) dan arsip zip dipisahkan dari riwayat pelacakan Git agar mematuhi batas maksimal berkas GitHub (100 MB), namun tetap utuh menyatu di dalam paket aplikasi komputer lokal Mas Bima.
+      - **Ketersediaan README & Kemudahan Eksekusi Desktop (Temuan 14 Okt 2026)**:
+        - Mas Bima menegaskan bahwa repositori wajib memiliki dokumentasi `README.md` yang lengkap dan profesional.
+        - Mas Bima mengekspektasikan file executable desktop (`Element-Maker.exe`) dapat langsung dipindahkan dan dijalankan dari Desktop tanpa gagal menemukan modul Python atau model AI di folder instalasi proyek.
+        - Solusi: Mesin Rust (`lib.rs`) dilengkapi dengan fallback jalur absolut proyek sehingga biner executable dapat diletakkan di Desktop manapun dan tetap otomatis menyalakan server lokal secara hening dan presisi.
