@@ -9,7 +9,7 @@ yang bertentangan dengan pesanan.
 from typing import Optional
 
 # Model bawaan yang cukup pintar untuk menulis prompt (murah & cepat).
-DEFAULT_OPTIMIZER_MODEL = "ag/gemini-3.8-flash"
+DEFAULT_OPTIMIZER_MODEL = "ag/gemini-2.5-flash"
 
 # Kata kunci model yang hanya bisa menggambar (tidak bisa diajak menulis prompt).
 # Jika setting global berisi salah satu ini, optimizer tidak boleh ikut-ikutan.

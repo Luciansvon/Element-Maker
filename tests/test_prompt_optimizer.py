@@ -18,7 +18,7 @@ def test_pick_optimizer_prefers_explicit_choice():
 def test_pick_optimizer_ignores_image_model_global():
     # Model utama gambar (tidak bisa menulis) wajib dilewati ke bawaan pintar.
     picked = pick_optimizer_model("", "dall-e-3", [])
-    assert picked == "ag/gemini-3.8-flash"
+    assert picked == "ag/gemini-2.5-flash"
 
 
 def test_pick_optimizer_follows_chat_global_model():

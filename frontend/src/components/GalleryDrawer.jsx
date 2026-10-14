@@ -55,17 +55,18 @@ export default function GalleryDrawer({
 
   // Filter elemen berdasarkan kategori & kata kunci pencarian
   const filteredElements = elements.filter((item) => {
-    if (item.id === 'elem-burger') return false;
-
     // Filter Kategori
     if (categoryFilter === 'typography') {
       const isTypo = item.is_typography || (item.title && item.title.startsWith('3D:')) || (item.prompt && item.prompt.toLowerCase().includes('typography'));
       if (!isTypo) return false;
     } else if (categoryFilter === 'hd') {
       if (!item.is_hd) return false;
+    } else if (categoryFilter === 'wallpaper') {
+      if (!item.is_wallpaper && item.mode !== 'wallpaper') return false;
     } else if (categoryFilter === 'objects') {
       const isTypo = item.is_typography || (item.title && item.title.startsWith('3D:')) || (item.prompt && item.prompt.toLowerCase().includes('typography'));
-      if (isTypo) return false;
+      const isWall = item.is_wallpaper || item.mode === 'wallpaper';
+      if (isTypo || isWall) return false;
     }
 
     // Filter Pencarian Teks

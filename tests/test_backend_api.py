@@ -93,3 +93,62 @@ def test_revise_element_prompt_logic():
     is_remove_detected = any(kw in lower_remove for kw in ["hapus", "hilangkan", "buang", "remove", "delete", "tanpa", "without"])
     assert is_remove_detected
 
+
+def test_get_adaptive_chroma_tag_green_keywords():
+    """
+    Menguji agar objek berunsur hijau (selada, matcha, brokoli, sayur)
+    tidak diberi layar hijau melainkan layar biru (BUG-BG5).
+    """
+    from backend.services.ai_gateway import get_adaptive_chroma_tag
+
+    # Objek hijau harus memilih layar biru (blue screen)
+    tag_burger = get_adaptive_chroma_tag("burger daging dengan selada segar dan tomat")
+    assert "#0000FF" in tag_burger or "blue" in tag_burger.lower()
+
+    tag_matcha = get_adaptive_chroma_tag("es krim matcha latte lezat")
+    assert "#0000FF" in tag_matcha or "blue" in tag_matcha.lower()
+
+    tag_salad = get_adaptive_chroma_tag("salad sayur brokoli dan timun segar")
+    assert "#0000FF" in tag_salad or "blue" in tag_salad.lower()
+
+    # Objek bukan hijau harus tetap memilih green screen bawaan
+    tag_car = get_adaptive_chroma_tag("mobil sedan merah mengkilap")
+    assert "#00FF00" in tag_car or "green" in tag_car.lower()
+
+
+def test_bg_qc_green_object_preservation():
+    """
+    Menguji bahwa pembersihan chroma lembut mempertahankan inti objek hijau (BUG-BG2).
+    """
+    # Kanvas 100x100 dengan objek hijau solid di tengah (30:70, 30:70)
+    img = Image.new("RGBA", (100, 100), (0, 0, 0, 0))
+    for x in range(30, 70):
+        for y in range(30, 70):
+            img.putpixel((x, y), (34, 180, 34, 255))
+
+    cleaned_img = bg_qc_engine._clean_chroma_leftovers(img, bg_type="green")
+
+    # Pusat objek hijau (50, 50) tidak boleh bolong (alpha harus tetap 255)
+    center_pixel = cleaned_img.getpixel((50, 50))
+    assert center_pixel[3] == 255, "Inti objek hijau tidak boleh bolong/tergerus"
+
+
+def test_upscale_request_scale_validation():
+    """
+    Menguji batas validasi scale pada UpscaleRequest (1 <= scale <= 4) (BUG-BE6).
+    """
+    from pydantic import ValidationError
+    from backend.api.routes import UpscaleRequest
+
+    # Skala 2 dan 4 valid
+    req_valid = UpscaleRequest(image_base64="data:image/png;base64,abc", scale=2)
+    assert req_valid.scale == 2
+
+    # Skala 0 atau 5 harus ditolak dengan ValidationError
+    with pytest.raises(ValidationError):
+        UpscaleRequest(image_base64="data:image/png;base64,abc", scale=0)
+
+    with pytest.raises(ValidationError):
+        UpscaleRequest(image_base64="data:image/png;base64,abc", scale=5)
+
+

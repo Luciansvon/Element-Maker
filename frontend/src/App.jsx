@@ -234,6 +234,7 @@ export default function App() {
 
       setCurrentElement(newElem);
       setIsInpainting(false);
+      setIsHdActive(false);
       setZoom(1);
       setPan({ x: 0, y: 0 });
       showToast('Elemen grafis berhasil dibuat dengan latar bersih!', 'success');
@@ -284,6 +285,7 @@ export default function App() {
 
       setCurrentElement(newElem);
       setIsInpainting(false);
+      setIsHdActive(false);
       setZoom(1);
       setPan({ x: 0, y: 0 });
       showToast('Tipografi 3D pop-up berhasil dicetak dengan latar bersih!', 'success');
@@ -340,6 +342,7 @@ export default function App() {
 
       setCurrentElement(newElem);
       setIsInpainting(false);
+      setIsHdActive(false);
       setZoom(1);
       setPan({ x: 0, y: 0 });
       showToast(`Wallpaper ${t.model} berhasil dibuat!`, 'success');
@@ -484,7 +487,14 @@ export default function App() {
       const filename = `${cleanTitle}_${isHd ? '2048px_HD' : 'clean'}.${isSvg ? 'svg' : 'png'}`;
 
       if (isSvg) {
-        const blob = new Blob([target.svg_code || target.image_base64], { type: 'image/svg+xml' });
+        let svgContent = target.svg_code;
+        if (!svgContent && target.image_base64 && target.image_base64.includes(',')) {
+          const rawPart = target.image_base64.split(',', 1)[1] || target.image_base64.split(',')[1];
+          svgContent = target.image_base64.includes(';base64,')
+            ? window.atob(rawPart)
+            : decodeURIComponent(rawPart);
+        }
+        const blob = new Blob([svgContent || target.image_base64], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -859,6 +869,7 @@ export default function App() {
                 if (elem.prompt) setPrompt(elem.prompt);
                 if (elem.mode) setMode(elem.mode);
                 setIsInpainting(false);
+                setIsHdActive(!!elem.is_hd);
                 setZoom(1);
                 setPan({ x: 0, y: 0 });
                 if (elem.is_typography) {
@@ -956,6 +967,7 @@ export default function App() {
               if (elem.prompt) setPrompt(elem.prompt);
               if (elem.mode) setMode(elem.mode);
               setIsInpainting(false);
+              setIsHdActive(!!elem.is_hd);
               setZoom(1);
               setPan({ x: 0, y: 0 });
             }}

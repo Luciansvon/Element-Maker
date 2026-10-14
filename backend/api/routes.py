@@ -1,8 +1,9 @@
+import base64
 import io
 import json
 import asyncio
 import threading
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Header
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -45,7 +46,7 @@ class InpaintRequest(BaseModel):
 
 class UpscaleRequest(BaseModel):
     image_base64: str = Field(..., description="Gambar asal (base64)")
-    scale: Optional[int] = Field(2, description="Faktor pembesar (misal 2x)")
+    scale: Optional[int] = Field(2, ge=1, le=4, description="Faktor pembesar (1x sampai 4x)")
 
 
 class RemoveBgRequest(BaseModel):
@@ -110,12 +111,21 @@ async def health_check():
 
 
 @router.get("/models")
-async def get_available_models(base_url: str = "http://localhost:20128/v1", api_key: str = ""):
+async def get_available_models(
+    base_url: str = "http://localhost:20128/v1",
+    api_key: str = "",
+    authorization: Optional[str] = Header(None),
+):
     """
     Mengambil daftar model AI aktif dari 9Router.
+    Dukungan pembacaan kunci dari header Authorization: Bearer ... agar kunci tidak perlu terekspos di URL.
     """
+    resolved_key = api_key
+    if not resolved_key and authorization and authorization.startswith("Bearer "):
+        resolved_key = authorization.split("Bearer ", 1)[1].strip()
+
     try:
-        models = await ai_gateway.get_models(base_url=base_url, api_key=api_key)
+        models = await ai_gateway.get_models(base_url=base_url, api_key=resolved_key)
         return {"status": "ok", "models": models}
     except Exception as e:
         return {"status": "error", "message": str(e), "models": ["dall-e-3", "flux-pro", "stable-diffusion-xl"]}

@@ -19,7 +19,7 @@ def get_adaptive_chroma_tag(prompt: str) -> str:
     - Objek umum/teks/merah/emas: gunakan layar hijau (#00FF00).
     """
     is_green = bool(re.search(
-        r'\b(hijau|daun|pohon|rumput|lumut|melon|alpukat|tanaman|zamrud|katak|bayam|green|leaf|plant|tree|grass|moss|emerald|lime|mint|forest|frog)\b',
+        r'\b(hijau|daun|pohon|rumput|lumut|melon|alpukat|tanaman|zamrud|katak|bayam|selada|sayur|timun|brokoli|cabai|pandan|matcha|cendol|burger|salad|green|leaf|plant|tree|grass|moss|emerald|lime|mint|forest|frog|lettuce|cucumber|broccoli)\b',
         prompt or "",
         re.I
     ))
@@ -300,6 +300,7 @@ class AIGatewayService:
         img_mask.convert("RGBA").save(mask_bytes, format="PNG")
         mask_bytes.seek(0)
 
+        api_key = await self.resolve_api_key(base_url, api_key)
         url = f"{base_url.rstrip('/')}/images/edits"
         headers = {}
         if api_key:
@@ -412,6 +413,9 @@ class AIGatewayService:
         if no_bg:
             edited_image, qc_report = bg_qc_engine.process_image(edited_image)
 
+        if qc_report is not None:
+            qc_report["inpaint_mode"] = "fallback_regeneration" if is_fallback else "native_edit"
+
         return {
             "image_base64": f"data:image/png;base64,{image_to_base64(edited_image)}",
             "prompt_used": used_prompt,
@@ -446,7 +450,7 @@ class AIGatewayService:
                 m for m in active_models
                 if any(k in m.lower() for k in ["gemini", "claude", "gpt-4o", "vision", "qwen", "flash"])
             ]
-            vision_model = candidates[0] if candidates else "ag/gemini-3.8-flash"
+            vision_model = candidates[0] if candidates else "ag/gemini-2.5-flash"
 
         payload = {
             "model": vision_model,
@@ -508,6 +512,19 @@ class AIGatewayService:
         4. AI Check Ulang: Memotong latar belakang via QC Engine.
         5. Kirim kembali ke kanvas user.
         """
+        api_key = await self.resolve_api_key(base_url, api_key)
+        if mask_base64 and mask_base64.strip():
+            return await self.inpaint_element(
+                image_base64=image_base64,
+                mask_base64=mask_base64,
+                prompt=instruction,
+                original_prompt=original_prompt,
+                model=model,
+                base_url=base_url,
+                api_key=api_key,
+                no_bg=no_bg,
+            )
+
         vision_analysis = ""
         # Tahap 2: AI Analisa pakai Vision
         try:
@@ -532,18 +549,23 @@ class AIGatewayService:
         is_remove = any(kw in lower_inst for kw in ["hapus", "hilangkan", "buang", "remove", "delete", "tanpa", "without"])
 
         chroma_tag = get_adaptive_chroma_tag(base_subject)
+        chroma_tail = (
+            f"Single isolated graphic element, centered, {chroma_tag}, sharp clean edges, clean isolated cutout ready"
+            if no_bg
+            else "Harmonious background integration, maintain original background atmosphere and lighting"
+        )
 
         if is_remove:
             steered_prompt = (
                 f"{base_subject}, modified by completely removing {clean_inst}. "
                 "Retain and perfectly preserve the exact visual style, proportions, lighting, and textures of all other parts. "
-                f"Single isolated graphic element, centered, {chroma_tag}, sharp clean edges, clean isolated cutout ready"
+                f"{chroma_tail}"
             )
         else:
             steered_prompt = (
                 f"{base_subject}, seamlessly combined with addition of {clean_inst}. "
                 "Strictly maintain consistent visual identity, identical color palette, lighting, texture, and materials of the original subject. "
-                f"Natural proportional composition, single isolated graphic element, centered, {chroma_tag}, sharp clean edges, clean isolated cutout ready"
+                f"{chroma_tail}"
             )
 
         gen_url = f"{base_url.rstrip('/')}/images/generations"
@@ -637,7 +659,7 @@ class AIGatewayService:
                 if any(k in m.lower() for k in ["gemini", "claude", "gpt-4o", "vision", "qwen", "flash"])
                 and not any(x in m.lower() for x in ["flux", "sdxl", "cogview"])
             ]
-            vision_model = candidates[0] if candidates else "ag/gemini-3.8-flash"
+            vision_model = candidates[0] if candidates else "ag/gemini-2.5-flash"
 
         payload = {
             "model": vision_model,
@@ -709,7 +731,7 @@ class AIGatewayService:
                 m for m in active_models
                 if any(k in m.lower() for k in ["gemini", "claude", "gpt-4o", "vision", "qwen", "flash"])
             ]
-            vision_model = candidates[0] if candidates else "ag/gemini-3.8-flash"
+            vision_model = candidates[0] if candidates else "ag/gemini-2.5-flash"
 
         system_instruction = (
             "Kamu adalah master desainer grafis vektor dan ahli kode SVG profesional.\n"

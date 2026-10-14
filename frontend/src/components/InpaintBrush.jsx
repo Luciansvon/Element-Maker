@@ -51,7 +51,9 @@ export default function InpaintBrush({
         canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, w, h);
-        saveState();
+        const initialData = ctx.getImageData(0, 0, w, h);
+        setHistory([initialData]);
+        setHistoryStep(0);
       }
     };
   }, [imageSrc]);

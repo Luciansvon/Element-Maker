@@ -58,13 +58,19 @@ def _upscale_with_realesrgan(
         if progress_cb:
             progress_cb(20, "Menjalankan AI Super Resolution...")
 
-        # Jalankan Real-ESRGAN
+        # Jalankan Real-ESRGAN dengan model yang tervalidasi di folder models/
+        esrgan_scale = scale if scale in (2, 3, 4) else 4
+        model_name = f"realesr-animevideov3-x{esrgan_scale}"
+        x4plus_param = REALESRGAN_DIR / "models" / "realesrgan-x4plus.param"
+        if x4plus_param.is_file() and esrgan_scale == 4:
+            model_name = "realesrgan-x4plus"
+
         cmd = [
             str(REALESRGAN_EXE),
             "-i", input_path,
             "-o", output_path,
-            "-s", str(scale),
-            "-n", "realesrgan-x4plus",  # model terbaik untuk foto umum
+            "-s", str(esrgan_scale),
+            "-n", model_name,
             "-f", "png",
         ]
 
@@ -209,9 +215,7 @@ def enhance_image_hd(
     if realesrgan_ready:
         engine_used = "realesrgan_ai"
         try:
-            # Real-ESRGAN hanya mendukung skala 4x, jadi kita sesuaikan
-            # Jika user minta 2x, kita upscale 4x lalu downscale 50%
-            esrgan_scale = 4
+            esrgan_scale = scale if scale in (2, 3, 4) else 4
             result_img = _upscale_with_realesrgan(img, scale=esrgan_scale, progress_cb=progress_cb)
 
             # Sesuaikan ukuran akhir jika skala yang diminta bukan 4x

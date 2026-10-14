@@ -227,3 +227,7 @@
         - Gemini Web App tidak dapat mengekstrak berkas `.zip` secara otomatis di jendela obrolan, melainkan membaca teks mentah tidak terkompresi.
         - Solusi: Seluruh kode proyek digabung menjadi satu berkas teks terstruktur `kode_lengkap.txt` (~885 KB) yang dilengkapi penanda nama file `=== FILE: ... ===`.
         - Berkas diletakkan langsung di layar Desktop (`C:\Users\shint\Desktop\kode_lengkap.txt`) agar Mas Bima bisa langsung mengunggahnya ke Gemini App dalam satu langkah mudah.
+      - **Audit Bug Komprehensif & Duplikasi Kontrol Jendela (Temuan 14 Okt 2026)**:
+        - Mas Bima sangat jeli menemukan adanya duplikasi tombol kontrol jendela (Minimize, Maximize, Close tiruan di Header.jsx) yang tampil berdampingan dengan tombol kontrol resmi jendela Windows.
+        - Mas Bima memberikan 19 poin audit bug komprehensif dari Gemini App yang mencakup perombakan pemotong latar 4-lapis (perlindungan objek hijau, penghapusan pulau debu, dan anti-halo), perbaikan pemilihan model Real-ESRGAN, pengamanan API key & batas skala, serta perbaikan sinkronisasi UI laci dan kuas inpaint.
+        - Aturan Mutlak: Perbaikan wajib dilakukan secara presisi tanpa mengubah estetika antarmuka yang disukai Mas Bima, dan tetap berada dalam mode pengembangan web lokal (dilarang kompilasi ke .exe).

@@ -2,9 +2,6 @@ import React from 'react';
 import {
   Sparkles,
   Settings,
-  Minus,
-  Square,
-  X,
   Box,
   Type,
   Monitor,
@@ -105,28 +102,6 @@ export default function Header({
         >
           <Settings className="w-3.5 h-3.5" />
         </button>
-
-        {/* Kontrol Jendela Windows */}
-        <div className="flex items-center gap-1 pl-2.5 border-l border-white/[0.08] text-slate-400">
-          <button
-            className="w-7 h-7 flex items-center justify-center hover:text-white hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
-            title="Minimize"
-          >
-            <Minus className="w-3.5 h-3.5" />
-          </button>
-          <button
-            className="w-7 h-7 flex items-center justify-center hover:text-white hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
-            title="Maximize"
-          >
-            <Square className="w-3 h-3" />
-          </button>
-          <button
-            className="w-7 h-7 flex items-center justify-center hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
-            title="Close"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
       </div>
     </header>
   );
