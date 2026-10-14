@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   X,
   Search,
@@ -36,6 +36,22 @@ export default function WallpaperTemplateModal({
   const [customHeight, setCustomHeight] = useState(
     customDimensions?.height || selectedTemplate?.height || 1080
   );
+
+  // Sinkronkan customWidth dan customHeight saat modal dibuka (isOpen menjadi true)
+  useEffect(() => {
+    if (isOpen) {
+      if (customDimensions?.width) {
+        setCustomWidth(customDimensions.width);
+      } else if (selectedTemplate?.width) {
+        setCustomWidth(selectedTemplate.width);
+      }
+      if (customDimensions?.height) {
+        setCustomHeight(customDimensions.height);
+      } else if (selectedTemplate?.height) {
+        setCustomHeight(selectedTemplate.height);
+      }
+    }
+  }, [isOpen, customDimensions, selectedTemplate]);
 
   // Filter template berdasarkan pencarian dan kategori
   const filteredTemplates = useMemo(() => {

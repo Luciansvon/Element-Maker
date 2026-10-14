@@ -152,3 +152,95 @@ def test_upscale_request_scale_validation():
         UpscaleRequest(image_base64="data:image/png;base64,abc", scale=5)
 
 
+def test_base64_to_image_rejects_svg():
+    """
+    Menguji bahwa base64_to_image menolak data URI SVG mentah atau tag <svg (Bug 2 Backend).
+    """
+    with pytest.raises(ValueError, match="Format SVG perlu dirender ke PNG"):
+        base64_to_image("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjwvc3ZnPg==")
+
+    with pytest.raises(ValueError, match="Format SVG perlu dirender ke PNG"):
+        base64_to_image('<svg xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100"/></svg>')
+
+
+def test_base64_to_image_rejects_oversized_payload():
+    """
+    Menguji bahwa base64_to_image menolak payload di atas 20 MB (Bug 2 Backend).
+    """
+    from backend.services.ai_gateway import MAX_BASE64_LENGTH
+
+    oversized = "A" * (MAX_BASE64_LENGTH + 1)
+    with pytest.raises(ValueError, match="Ukuran berkas gambar terlalu besar"):
+        base64_to_image(oversized)
+
+
+@pytest.mark.anyio
+async def test_openai_inpaint_mask_transparency(monkeypatch):
+    """
+    Menguji bahwa pembuatan masker untuk inpainting OpenAI (/images/edits)
+    membuat area putih (arsir kuas) menjadi transparan (alpha = 0) dan area hitam menjadi opak (alpha = 255) (Bug 5).
+    """
+    from backend.services.ai_gateway import ai_gateway
+
+    # Buat gambar asal 50x50 dan masker 50x50
+    orig = Image.new("RGBA", (50, 50), (255, 0, 0, 255))
+    mask = Image.new("L", (50, 50), 0)  # background hitam (tidak diedit)
+    # Area arsir putih (diedit) di tengah (20:30, 20:30)
+    for x in range(20, 30):
+        for y in range(20, 30):
+            mask.putpixel((x, y), 255)
+
+    captured_mask_bytes = None
+
+    class MockResponse:
+        status_code = 200
+
+        def json(self):
+            return {"data": [{"b64_json": image_to_base64(orig)}]}
+
+    class MockAsyncClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+        async def post(self, url, *args, **kwargs):
+            nonlocal captured_mask_bytes
+            if "files" in kwargs and "mask" in kwargs["files"]:
+                captured_mask_bytes = kwargs["files"]["mask"][1]
+            return MockResponse()
+
+    import httpx
+    monkeypatch.setattr(httpx, "AsyncClient", MockAsyncClient)
+
+    orig_b64 = image_to_base64(orig)
+    mask_b64 = image_to_base64(mask.convert("RGBA"))
+
+    await ai_gateway.inpaint_element(
+        image_base64=orig_b64,
+        mask_base64=mask_b64,
+        prompt="tambahkan topi",
+        base_url="http://localhost:20128/v1",
+        api_key="test-key",
+        no_bg=False,
+    )
+
+    assert captured_mask_bytes is not None
+    mask_result = Image.open(io.BytesIO(captured_mask_bytes))
+    assert mask_result.mode == "RGBA"
+    assert mask_result.size == (50, 50)
+
+    # Area luar (hitam pada masker asli) harus opak (alpha = 255)
+    outside_pixel = mask_result.getpixel((5, 5))
+    assert outside_pixel[3] == 255, f"Area unmasked harus memiliki alpha=255, didapat: {outside_pixel[3]}"
+
+    # Area dalam (putih pada masker asli) harus transparan (alpha = 0)
+    inside_pixel = mask_result.getpixel((25, 25))
+    assert inside_pixel[3] == 0, f"Area masked harus memiliki alpha=0 (transparan), didapat: {inside_pixel[3]}"
+
+
+

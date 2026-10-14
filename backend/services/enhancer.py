@@ -17,8 +17,8 @@ from pathlib import Path
 from PIL import Image, ImageFilter, ImageEnhance
 from typing import Callable, Optional
 
-# Izinkan pemrosesan gambar resolusi tinggi tanpa batasan piksel bawaan PIL
-Image.MAX_IMAGE_PIXELS = None
+# Batasi resolusi maksimal untuk keamanan memori (67.1 MP)
+Image.MAX_IMAGE_PIXELS = 67_108_864
 
 logger = logging.getLogger(__name__)
 

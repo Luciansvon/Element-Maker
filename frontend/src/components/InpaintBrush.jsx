@@ -22,6 +22,7 @@ export default function InpaintBrush({
   const [history, setHistory] = useState([]);
   const [historyStep, setHistoryStep] = useState(-1);
   const [imageDimensions, setImageDimensions] = useState({ width: 560, height: 560 });
+  const [naturalDimensions, setNaturalDimensions] = useState({ width: 1024, height: 1024 });
 
   // Inisialisasi gambar dan ukuran kanvas yang optimal (tidak terlalu kecil)
   useEffect(() => {
@@ -30,10 +31,14 @@ export default function InpaintBrush({
     img.crossOrigin = 'anonymous';
     img.src = imageSrc;
     img.onload = () => {
+      const nw = img.naturalWidth || img.width || 1024;
+      const nh = img.naturalHeight || img.height || 1024;
+      setNaturalDimensions({ width: nw, height: nh });
+
       // Skala gambar agar pas dan megah di kanvas studio
       const maxDim = 580;
-      let w = img.width || maxDim;
-      let h = img.height || maxDim;
+      let w = nw;
+      let h = nh;
       if (w > maxDim || h > maxDim) {
         if (w > h) {
           h = Math.round((h * maxDim) / w);
@@ -142,21 +147,24 @@ export default function InpaintBrush({
     const drawCanvas = canvasRef.current;
     if (!drawCanvas) return null;
 
-    // Buat kanvas masker virtual ukuran 1024x1024
+    const targetWidth = naturalDimensions.width || 1024;
+    const targetHeight = naturalDimensions.height || 1024;
+
+    // Buat kanvas masker virtual sesuai ukuran asli citra (naturalDimensions)
     const maskCanvas = document.createElement('canvas');
-    maskCanvas.width = 1024;
-    maskCanvas.height = 1024;
+    maskCanvas.width = targetWidth;
+    maskCanvas.height = targetHeight;
     const mctx = maskCanvas.getContext('2d');
 
     // Latar hitam (area yang tetap dipertahankan)
     mctx.fillStyle = '#000000';
-    mctx.fillRect(0, 0, 1024, 1024);
+    mctx.fillRect(0, 0, targetWidth, targetHeight);
 
     // Ambil pixel dari drawing canvas
     const drawCtx = drawCanvas.getContext('2d');
     const drawData = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
 
-    // Salin goresan ke ukuran 1024x1024 sebagai putih murni (area yang diubah/ditambah)
+    // Salin goresan sebagai putih murni (area yang diubah/ditambah)
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = drawCanvas.width;
     tempCanvas.height = drawCanvas.height;
@@ -174,8 +182,8 @@ export default function InpaintBrush({
     }
     tctx.putImageData(tdata, 0, 0);
 
-    // Gambar tempCanvas ke maskCanvas
-    mctx.drawImage(tempCanvas, 0, 0, 1024, 1024);
+    // Gambar tempCanvas ke maskCanvas sesuai dimensi asli
+    mctx.drawImage(tempCanvas, 0, 0, targetWidth, targetHeight);
     return maskCanvas.toDataURL('image/png');
   };
 

@@ -3,11 +3,14 @@ import io
 import re
 from typing import Optional, List, Dict, Any, Tuple
 import httpx
+import numpy as np
 from PIL import Image
 from .bg_remover import bg_qc_engine
 
-# Izinkan pemrosesan gambar resolusi tinggi tanpa batasan piksel bawaan PIL
-Image.MAX_IMAGE_PIXELS = None
+# Batasi resolusi maksimal untuk keamanan memori (67.1 MP)
+Image.MAX_IMAGE_PIXELS = 67_108_864
+
+MAX_BASE64_LENGTH = 20 * 1024 * 1024  # 20 MB
 
 DEFAULT_9ROUTER_URL = "http://localhost:20128/v1"
 
@@ -35,6 +38,11 @@ def image_to_base64(img: Image.Image) -> str:
 
 
 def base64_to_image(b64_str: str) -> Image.Image:
+    if len(b64_str) > MAX_BASE64_LENGTH:
+        raise ValueError("Ukuran berkas gambar terlalu besar (melebihi batas aman 20 MB).")
+    if b64_str.lstrip().startswith("data:image/svg+xml") or "<svg" in b64_str[:200]:
+        raise ValueError("Format SVG perlu dirender ke PNG terlebih dahulu sebelum diproses piksel.")
+
     # Hilangkan awalan data URL jika ada
     if "," in b64_str:
         b64_str = b64_str.split(",", 1)[1]
@@ -296,8 +304,15 @@ class AIGatewayService:
         img_original.convert("RGBA").save(img_bytes, format="PNG")
         img_bytes.seek(0)
 
+        # Format masker untuk /images/edits dibuat transparan (alpha = 0) pada area yang diarsir putih
+        if img_mask.size != img_original.size:
+            img_mask = img_mask.resize((img_original.width, img_original.height), Image.Resampling.NEAREST)
+        mask_gray = np.array(img_mask.convert('L'))
+        rgba_mask_arr = np.zeros((img_original.height, img_original.width, 4), dtype=np.uint8)
+        rgba_mask_arr[:, :, 3] = np.where(mask_gray > 128, 0, 255).astype(np.uint8)
+        openai_mask_img = Image.fromarray(rgba_mask_arr, 'RGBA')
         mask_bytes = io.BytesIO()
-        img_mask.convert("RGBA").save(mask_bytes, format="PNG")
+        openai_mask_img.save(mask_bytes, format='PNG')
         mask_bytes.seek(0)
 
         api_key = await self.resolve_api_key(base_url, api_key)

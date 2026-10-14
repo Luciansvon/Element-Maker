@@ -318,15 +318,17 @@ async def remove_background_endpoint(req: RemoveBgRequest):
     Memotong latar belakang gambar mandiri dengan sistem QC otomatis.
     """
     try:
-        img = base64_to_image(req.image_base64)
-        clean_img, qc_report = bg_qc_engine.process_image(
+        img = await asyncio.to_thread(base64_to_image, req.image_base64)
+        clean_img, qc_report = await asyncio.to_thread(
+            bg_qc_engine.process_image,
             img,
             refine_edges=req.refine_edges,
             glass_mode=req.glass_mode or False,
         )
+        clean_b64 = await asyncio.to_thread(image_to_base64, clean_img)
         return {
             "status": "ok",
-            "image_base64": f"data:image/png;base64,{image_to_base64(clean_img)}",
+            "image_base64": f"data:image/png;base64,{clean_b64}",
             "qc_report": qc_report,
         }
     except Exception as e:
@@ -340,13 +342,14 @@ async def upscale_element(req: UpscaleRequest):
     Menggabungkan perbesaran Lanczos 2x, Unsharp Masking mikro, dan kontras lokal.
     """
     try:
-        img = base64_to_image(req.image_base64)
+        img = await asyncio.to_thread(base64_to_image, req.image_base64)
         scale_factor = req.scale or 2
-        enhanced_img, metrics = enhance_image_hd(img, scale=scale_factor)
+        enhanced_img, metrics = await asyncio.to_thread(enhance_image_hd, img, scale=scale_factor)
+        enhanced_b64 = await asyncio.to_thread(image_to_base64, enhanced_img)
         
         return {
             "status": "ok",
-            "image_base64": f"data:image/png;base64,{image_to_base64(enhanced_img)}",
+            "image_base64": f"data:image/png;base64,{enhanced_b64}",
             "scale": scale_factor,
             "dimensions": f"{enhanced_img.width}x{enhanced_img.height}",
             "metrics": metrics,
@@ -445,7 +448,7 @@ async def vectorize_element(req: VectorizeRequest):
                     api_key=req.api_key or "",
                     model=req.model or "",
                 )
-                svg_data_uri = svg_to_data_uri(svg_code)
+                svg_data_uri = await asyncio.to_thread(svg_to_data_uri, svg_code)
                 return {
                     "status": "ok",
                     "svg_code": svg_code,
@@ -457,9 +460,9 @@ async def vectorize_element(req: VectorizeRequest):
                 print(f"Peringatan: Gagal membuat SVG via AI Vision ({ai_v_err}), beralih ke tracing cepat.")
 
         # 3. Fallback atau Mode Trace Cepat (Jiplak Berbasis Matriks Warna)
-        img = base64_to_image(req.image_base64)
-        svg_code = image_to_svg(img, num_colors=req.num_colors or 16)
-        svg_data_uri = svg_to_data_uri(svg_code)
+        img = await asyncio.to_thread(base64_to_image, req.image_base64)
+        svg_code = await asyncio.to_thread(image_to_svg, img, num_colors=req.num_colors or 16)
+        svg_data_uri = await asyncio.to_thread(svg_to_data_uri, svg_code)
         return {
             "status": "ok",
             "svg_code": svg_code,

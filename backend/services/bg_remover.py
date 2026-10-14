@@ -3,8 +3,8 @@ import numpy as np
 from PIL import Image, ImageFilter
 import skimage.measure
 
-# Izinkan pemrosesan gambar resolusi tinggi tanpa batasan piksel bawaan PIL
-Image.MAX_IMAGE_PIXELS = None
+# Batasi resolusi maksimal untuk keamanan memori (67.1 MP)
+Image.MAX_IMAGE_PIXELS = 67_108_864
 
 try:
     from rembg import remove, new_session

@@ -46,3 +46,56 @@ export function rasterizeSvgToPng(svgDataUri, targetSize = 1024) {
     }
   });
 }
+
+/**
+ * Memastikan data URI gambar berada dalam format PNG murni.
+ * Jika sudah PNG, langsung dikembalikan.
+ * Jika berupa SVG, dikonversi menggunakan rasterizeSvgToPng.
+ * Jika format citra lain (JPEG, WebP, dsb.), digambar ke kanvas HTML dan diekspor ke PNG.
+ */
+export async function ensurePngDataUrl(dataUrl, targetMaxDim = 1024) {
+  if (!dataUrl || typeof dataUrl !== 'string') {
+    return dataUrl;
+  }
+
+  // Jika sudah PNG murni
+  if (dataUrl.startsWith('data:image/png;base64,')) {
+    return dataUrl;
+  }
+
+  // Jika berupa SVG
+  if (dataUrl.startsWith('data:image/svg+xml') || dataUrl.includes('<svg')) {
+    return await rasterizeSvgToPng(dataUrl, targetMaxDim);
+  }
+
+  // Format citra lain (JPEG, WebP, dsb.)
+  return new Promise((resolve, reject) => {
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || img.width || targetMaxDim;
+        canvas.height = img.naturalHeight || img.height || targetMaxDim;
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          reject(new Error('Gagal menginisialisasi kanvas 2D untuk konversi PNG'));
+          return;
+        }
+
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+
+      img.onerror = (err) => {
+        reject(new Error(`Gagal memuat gambar untuk konversi PNG: ${err}`));
+      };
+
+      img.src = dataUrl;
+    } catch (e) {
+      reject(e);
+    }
+  });
+}

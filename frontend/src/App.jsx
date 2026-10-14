@@ -22,7 +22,7 @@ import {
   getAllElements,
   deleteElement as removeStoredElement,
 } from './services/storage';
-import { rasterizeSvgToPng } from './utils/svgRasterizer';
+import { rasterizeSvgToPng, ensurePngDataUrl } from './utils/svgRasterizer';
 
 export default function App() {
   // 1. STATE NAVIGASI & PENGATURAN
@@ -195,8 +195,9 @@ export default function App() {
   };
 
   // Eksekusi Pembuatan Elemen Baru dengan AI
-  const handleGenerate = async () => {
-    if (!prompt.trim()) {
+  const handleGenerate = async (overridePrompt) => {
+    const activePrompt = (typeof overridePrompt === 'string' ? overridePrompt : prompt).trim();
+    if (!activePrompt) {
       showToast('Harap masukkan deskripsi elemen terlebih dahulu.', 'warning');
       return;
     }
@@ -210,7 +211,7 @@ export default function App() {
 
     try {
       const result = await generateElement({
-        prompt: prompt.trim(),
+        prompt: activePrompt,
         mode,
         custom_bg: customBg,
         color,
@@ -224,8 +225,8 @@ export default function App() {
 
       const newElem = {
         id: `elem_${Date.now()}`,
-        title: prompt.trim().slice(0, 24),
-        prompt: prompt.trim(),
+        title: activePrompt.slice(0, 24),
+        prompt: activePrompt,
         mode,
         image_base64: result.image_base64,
         created_at: new Date().toISOString(),
@@ -270,6 +271,8 @@ export default function App() {
         base_url: config.baseUrl,
         api_key: config.apiKey,
         glass_mode: false,
+        reference_image: referenceImage || '',
+        reference_similarity: referenceSimilarity,
       });
 
       const newElem = {
@@ -360,10 +363,11 @@ export default function App() {
     } else if (activeTab === 'typography') {
       await handleGenerateTypography();
     } else {
-      if (currentElement && currentElement.prompt) {
+      const targetPrompt = prompt.trim() || (currentElement && currentElement.prompt) || '';
+      if (targetPrompt && currentElement && currentElement.prompt) {
         setPrompt(currentElement.prompt);
       }
-      await handleGenerate();
+      await handleGenerate(targetPrompt);
     }
   };
 
@@ -537,13 +541,8 @@ export default function App() {
     if (!target || !target.image_base64) return;
 
     try {
-      if (target.image_base64.startsWith('data:image/svg+xml')) {
-        await navigator.clipboard.writeText(target.svg_code || target.image_base64);
-        showToast('Kode kurva SVG berhasil disalin!', 'success');
-        return;
-      }
-
-      const parts = target.image_base64.split(';base64,');
+      const pngDataUrl = await ensurePngDataUrl(target.image_base64);
+      const parts = pngDataUrl.split(';base64,');
       const raw = window.atob(parts[1]);
       const uInt8Array = new Uint8Array(raw.length);
       for (let i = 0; i < raw.length; ++i) {
@@ -661,16 +660,25 @@ export default function App() {
     showToast('AI Vision sedang membaca gambar & meracik objek konsisten...', 'info');
 
     try {
+      let inputBase64 = currentElement.image_base64;
+      if (inputBase64.startsWith('data:image/svg+xml') || inputBase64.includes('<svg')) {
+        setRevisingStatus('Merender kurva vektor ke citra PNG...');
+        inputBase64 = await rasterizeSvgToPng(inputBase64, 1024);
+      }
+
+      const effectiveMode = currentElement.mode || (activeTab === 'wallpaper' ? 'wallpaper' : mode);
+      const shouldRemoveBg = effectiveMode === 'no_bg' && activeTab !== 'wallpaper' && !currentElement.is_wallpaper;
+
       const activeModel = config.inpaintModel || config.model || '';
       const res = await reviseElement({
-        imageBase64: currentElement.image_base64,
+        imageBase64: inputBase64,
         instruction: revisionPrompt.trim(),
         originalPrompt: currentElement ? (currentElement.prompt || currentElement.title || '') : '',
         maskBase64: maskBase64 || '',
         model: activeModel,
         baseUrl: config.baseUrl,
         apiKey: config.apiKey,
-        noBg: mode === 'no_bg',
+        noBg: shouldRemoveBg,
       });
 
       setRevisingStatus('Menyelesaikan pemotongan latar belakang...');
@@ -685,6 +693,7 @@ export default function App() {
       };
       setCurrentElement(updatedElem);
       setIsInpainting(false);
+      setIsHdActive(false);
       setRevisionPrompt('');
       showToast('Objek berhasil diperbarui secara konsisten!', 'success');
     } catch (err) {
