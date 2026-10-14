@@ -1,0 +1,48 @@
+# Python & Virtual Environments
+.venv/
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pytest_cache/
+.coverage
+htmlcov/
+
+# Node & Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+.vite/
+*.log
+
+# Rust & Tauri
+src-tauri/target/
+target/
+Cargo.lock
+
+# AI Models & Large Binary Weights (>100MB blocked by GitHub)
+*.onnx
+*.zip
+backend/tools/realesrgan/realesrgan.zip
+
+# Temporary test images & local scratch artifacts
+scratch_*.*
+direct_test_*.*
+final_e2e_*.*
+live_test_*.*
+test_*.png
+test_*.jpg
+frontend/tests/screenshots/
+
+# Operating System & IDE
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+.env
+.env.*
+!.env.example

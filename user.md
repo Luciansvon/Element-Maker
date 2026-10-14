@@ -1,0 +1,217 @@
+# Profil & Catatan Kebutuhan Pengguna: Bima
+
+## 1. Identitas & Latar Belakang
+- **Nama**: Bima
+- **Latar Belakang**: Desain Furnitur / Desain Grafis & Kreatif.
+- **Karakteristik Pemahaman**:
+  - Tidak memahami dasar-dasar teknis pemrograman (coding).
+  - Memahami alur kerja nyata: komposisi visual, estetika desain, elemen grafis (poster, layout, aset visual).
+  - Membutuhkan penjelasan dalam bahasa Indonesia murni, lugas, dan menggunakan analogi dunia nyata/desain/alat kerja bengkel.
+## 2. Kebutuhan Saat Ini (Proyek Element-maker)
+- Fitur Kunci & Logika Pembuatan Elemen:
+  - Penulisan Perintah Alami: Pengguna cukup mengetik ide elemen seperti biasa (misal: "buatkan foto burger sedang terpotong").
+  - 3 Pilihan Mode Latar Belakang (Kotak Pilihan):
+    1. **Tanpa Latar (No BG)**: Objek terpotong bersih, tembus pandang (transparan/PNG), siap tempel.
+    2. **Latar Polos (With BG Polos)**: Bawaan warna putih bersih, ditambah tombol palet warna cepat dan pemilih warna bebas.
+    3. **Latar Kustom (Custom BG)**: Latar belakang mengikuti permintaan khusus pengguna (misal: di atas meja kayu, suasana studio, dsb).
+  - Filosofi & Ekspektasi Pemotongan Latar (Pola QC Bima):
+    - Menginginkan proses yang memiliki verifikasi kualitas: objek dipotong > diperiksa kebersihannya > jika lolos (PASS) diserahkan ke pengguna, jika ada sisa kotoran diperbaiki/dibersihkan otomatis.
+    - Menghargai efisiensi: ingin cara yang paling efisien dan cerdas.
+    - **Fitur Kuas Perbaikan / Tambal Sulam (Inpainting)**: Disediakan alat pena/kuas untuk menandai (arsir) bagian tertentu dari objek yang ingin diubah atau ditambah, lalu mengetik instruksi perubahannya (seperti fitur kuas edit di web GPT).
+    - **Mental Model & Interaksi Kuas (Temuan 13 Okt 2026)**:
+      - Bima memandang kuas arsir bukan hanya untuk memperbaiki cacat gambar, tapi juga untuk **menambahkan objek baru** (misal: mengarsir bawah burger lalu minta "tambahkan piring", atau mengarsir kursi lalu minta "tambah laki-laki sedang duduk").
+      - **Larangan Pemotongan Kaku**: Jika instruksi adalah menambah objek baru, sistem DILARANG menjepit/memotong objek baru secara kaku hanya di lubang arsir kuas (karena akan memotong kepala atau badan objek secara janggal). Objek baru harus dibiarkan proporsional dan menyatu alami dengan gambar utama.
+      - Ekspektasi tombol: Saat Bima mengetik instruksi pada suatu kolom input, ia mencari tombol eksekusi tepat di sebelah kolom input tersebut atau dengan tombol berlabel jelas (bukan tulisan "Perbaiki Bagian Ini" yang terpisah jauh di bawah).
+      - Jangan menggunakan istilah koding; jelaskan dengan analogi tombol cetak/kirim atau sulam objek.
+    - **Preferensi Prompt Optimizer Adaptif (Temuan 13 Okt 2026)**:
+      - Tombol Optimizer DILARANG hanya menempelkan kata-kata template kaku yang sama (misal selalu menempelkan "foto profesional terpotong melayang 8K...").
+      - Optimizer WAJIB memahami konteks objek secara adaptif:
+        - Jika **Furnitur**: Perkaya detail serat kayu, bahan kain/kulit, finishing matte/glossy, proporsi ergonomis, studio lighting interior.
+        - Jika **Makanan**: Perkaya detail kesegaran, kilau minyak/keju meleleh, embun dingin, uap hangat, tekstur renyah.
+        - Jika **Orang / Karakter**: Perkaya detail pose wajar, ekspresi, lipatan pakaian, anatomi proporsional.
+        - Jika **Tipografi**: Perkaya detail timbul 3D, bevel berkilau, bayangan pop-up.
+        - Jika **Teknologi / Kendaraan**: Perkaya detail mekanis, pantulan bodi logam, presisi tinggi.
+    - Tombol Simpan & Panel Koleksi:
+      - Ketika diklik simpan, elemen masuk ke koleksi internal (bisa salin PNG atau unduh).
+      - **Preferensi Tata Letak Studio (13 Okt 2026)**:
+        1. **Bilah Prompt & Pilihan Mode**: Berada di **bagian bawah** layar (mirip bilah chat/prompt ChatGPT) agar pandangan fokus ke kanvas. (HARGA MATI: Jangan pernah dipindah ke atas kanvas lagi!).
+        2. **Meja Kanvas Inspeksi**: Berada di **tengah atas** sebagai panggung utama yang luas dan tidak terjepit.
+        3. **Panel Koleksi Elemen**: Berada di **Sidebar Kanan** (sisi paling kanan) yang bisa dibuka/tutup (*collapsible*) agar tidak memakan ruang kanvas jika sedang tidak dipakai. Wajib memiliki tombol **"+ Tambah Elemen Baru"** untuk mengosongkan kanvas dan mulai membuat elemen baru dari awal lewat teks (bukan mengambil foto dari folder).
+        4. **Keputusan Sidebar Kiri (13 Okt 2026)**: Mas Bima memutuskan **DILARANG MENGHAPUS** sidebar kiri. Alih-alih dihilangkan, sidebar kiri wajib difungsikan secara nyata sebagai panel kendali kerja studio (berpindah mode kerja: Pembuat Objek Grafis, Tipografi 3D Pop-Up, Riwayat Aset, dan Pintasan Pengaturan AI).
+        5. **Standar Skala Layar & UI/UX Optimal (13 Okt 2026)**:
+           - Mas Bima menggunakan zoom browser **75%** sebagai skala pandang paling optimal dan nyaman.
+           - Pada skala 75%, seluruh bagian studio (header atas, toolbar atas, kanvas tengah, prompt bar bawah, dan koleksi kanan) tampil pas 1 layar utuh tanpa terpotong dan tanpa perlu scroll vertikal.
+           - Semua pengujian visual dan desain tata letak wajib mengacu dan memverifikasi keselarasan pada skala ini.
+      - **Standar Notifikasi & Dialog**: DILARANG menggunakan pop-up bawaan peramban (`confirm` / `alert`). WAJIB menggunakan modal UI kustom studio bertema gelap dengan ukuran ekstra lega (+40%) yang nyaman dibaca dan tidak kaku.
+      - **Preferensi Kontrol Aksi**: Hindari switch toggle geser yang rawan terpotong atau membingungkan; gunakan **Button biasa** yang tegas dan nyaman diklik (seperti tombol Tingkatkan HD dengan warna amber/emas).
+      - **Kebutuhan Inspeksi & Navigasi Cepat (Temuan 13 Okt 2026)**:
+        - **Zoom & Pan Kanvas**: Mas Bima membutuhkan kemampuan memperbesar (zoom in hingga 400%), memperkecil (zoom out), dan menggeser (drag/pan) gambar elemen di kanvas untuk memeriksa kebersihan potongan detail tepian objek poster.
+        - **Pintasan Keyboard Global (General Key Combo)**:
+          - `Ctrl + C`: Salin PNG elemen aktif langsung ke papan klip.
+          - `Ctrl + V`: Tempel gambar dari luar/Photoshop langsung ke kanvas.
+          - `Ctrl + S`: Simpan elemen aktif ke koleksi.
+          - `Ctrl + Enter`: Eksekusi prompt buat elemen seketika.
+          - `Ctrl + + / - / 0`: Zoom in, Zoom out, Reset zoom kanvas.
+        - **Ekspektasi Fitur HD (Temuan 13 Okt 2026)**:
+          - Mas Bima mengkritisi fitur HD karena terasa hanya kosmetik dan tidak bekerja nyata.
+          - Ekspektasi Mas Bima: Peningkatan HD harus benar-benar menghasilkan perubahan kualitas visual yang terlihat jelas (garis lebih tajam, tekstur lebih jernih, resolusi cetak asli naik nyata, dan ada indikator ukuran piksel yang jelas), bukan sekadar animasi tombol atau peregangan gambar kosong.
+    - **Daftar Fitur Tambahan Baru (Permintaan 13 Okt 2026)**:
+      1. **Tipografi 3D Pop-Up**: Cetak huruf/tulisan 3D timbul bergaya stiker pop-up tebal untuk poster (misal tulisan promosi, teks menu makanan, headline artistik).
+      - **Prinsip Tipografi 3D Bebas / Tanpa Paksaan Template (Temuan 13 Okt 2026)**:
+        - Mas Bima menegaskan bahwa deretan kartu template kaku (Balon Pop-up, Emas Mewah, Stiker Timbul, Neon Pop-up, Kayu Ukir) **tidak perlu ada**.
+        - Pemaksaan template membuat hasil bertentangan dengan apa yang diketik pengguna (contoh: Mas Bima minta teks timbul navy dengan outline biru muda, tetapi karena sistem memaksa template Balon, hasilnya malah menjadi balon karet mengembang yang bertabrakan dengan konsep aslinya).
+        - Mas Bima ingin sistem bekerja murni sesuai instruksi bebas yang diketik (warna bebas, efek timbul bebas, outline bebas) tanpa embel-embel template yang membatasi atau menimpa deskripsi pengguna.
+        - Antarmuka Tipografi 3D harus ringkas dan fokus: kolom input instruksi teks bebas + tombol Cetak 3D yang langsung mengeksekusi murni sesuai keinginan pengguna.
+      2. **Remove BG Gelas + Air**: Pemotongan latar khusus benda bening/transparan menggunakan teknik alpha matting agar gelas kaca dan air tidak hilang/berlubang.
+      3. **Vectorize (Jika Memungkinkan)**: Konversi otomatis gambar bitmap (PNG) menjadi format kurva vektor tajam (SVG) ala Image Trace di Illustrator.
+    - **Preferensi Penyedia AI & Fleksibilitas Akun (Temuan 13 Okt 2026)**:
+      - Mas Bima DILARANG KERAS dikunci hanya pada 9Router.
+      - Sistem harus mendukung banyak penyedia AI (*multi-provider*): 9Router Lokal, OpenRouter, OpenAI Resmi, Zhipu/BigModel (CogView), dan Custom Endpoint.
+      - Terkait akun langganan (ChatGPT/Antigravity): Mas Bima sudah memiliki 9Router lokal yang mengelola OAuth akun-akun langganan tersebut. Sistem wajib membaca dan menampilkan akun-akun langganan aktif di 9Router secara nyata, menyediakan tombol uji sambungan (*test connection*) asli yang bukan kosmetik, dan tombol akses cepat ke dashboard 9Router.
+    - **Preferensi Fitur Laci Koleksi Nyata (Temuan 13 Okt 2026)**:
+      - Seluruh antarmuka DILARANG berupa kosmetik pajangan; semua tombol dan kontrol wajib memiliki logika kerja nyata.
+      - Mas Bima membutuhkan kemampuan pengelolaan aset: Unduh massal terpilih (*bulk download*), filter kategori cepat (Semua / Objek / Tipografi 3D / HD), unggah gambar manual dari komputer ke kanvas/koleksi, dan ubah nama (*rename*) aset.
+      - **Aturan Tata Letak Header Laci (Anti-Offside)**: Dilarang menjejalkan judul dan semua tombol aksi (Baru, Unggah, Pilih Banyak, Tutup) dalam satu baris sempit karena akan terdorong keluar layar (*offside*). Wajib dipisahkan: Baris atas untuk judul + tombol tutup, baris bawah untuk tombol aksi.
+      - **Perilaku Navigasi Sidebar Laci (Toggle Reaktif)**: Menu "Laci Koleksi" di sidebar kiri wajib berfungsi sebagai sakelar buka-tutup bolak-balik (*toggle*). Jika laci sudah terbuka, mengklik menu laci wajib menutupnya kembali, dan sebaliknya.
+      - **Mental Model Laci Koleksi (Galeri Full Inventory - Temuan 13 Okt 2026)**:
+        - Mas Bima mengkritisi bahwa menu "Laci Koleksi" di sidebar kiri seharusnya bukan sekadar tombol buka-tutup sidebar kanan sempit.
+        - Mas Bima mengekspektasikan "Laci Koleksi" berfungsi sebagai mode kerja **Galeri / Full Inventory** yang membuka panggung galeri penuh hasil generate di layar tengah (seperti galeri foto / katalog inventaris aset) dengan grid yang luas, pratinjau lega, detail prompt, ukuran piksel, dan tombol untuk memilih aset kembali ke meja kerja kanvas.
+    - **Standar Dokumentasi & Referensi Proyek Terdahulu (app-bikin-laporan & BIMA_CORE)**:
+  - Mengikuti struktur dokumentasi resmi: `docs/architecture.md`, `docs/ui-direction.md`, `docs/verification.md`, dan `docs/ERROR_SOLUTIONS.md`.
+  - Stack Frontend: React + Vite + Tailwind CSS yang ringan dan bersih.
+  - Proxy lokal Vite untuk mengarahkan jalur API ke 9Router (`http://localhost:20128`) secara mulus tanpa bentrok izin browser (CORS).
+  - Prinsip Kerja: Simplicity First, Anti-slop, dan selalu verifikasi alur kerja nyata sebelum rilis.
+  - **ATURAN MUTLAK BUILD EXE**: HARAM melakukan build aplikasi menjadi `.exe` tanpa izin eksplisit dari Bima. Selama masa pengembangan dan perbaikan bug (bugfix), aplikasi WAJIB dijalankan dalam mode web development (Vite + backend server lokal) dan DILARANG melakukan kompilasi ke `.exe`.
+- Rencana Pengerjaan:
+  - Tahap 1: Mematangkan dan merancang seluruh daftar fitur inti terlebih dahulu (Selesai & disepakati).
+  - Tahap 2: Bima merancang antarmuka (UI) sendiri menggunakan prompt desain yang dirangkum dari konteks fitur sistem (Selesai).
+  - Tahap 3: Implementasi antarmuka hasil rancangan Bima ke React (mode web dev lokal).
+  - Tahap 4: Pengemasan ke format exe HANYA JIKA telah diizinkan secara eksplisit oleh Mas Bima.
+- Repositori GitHub Proyek: `https://github.com/Luciansvon/Element-Maker`
+- **Alur Kerja Tambah/Hapus Objek Konsisten (Temuan 13 Okt 2026)**:
+  - Tombol **Kirim** di bilah atas wajib bisa dipencet langsung kapan saja (baik sedang mengarsir kuas maupun tanpa kuas).
+  - Skema resmi konsistensi gambar hasil rumusan Mas Bima:
+    1. *User Prompt*: Mas Bima mengetik instruksi tambah/hapus objek (misal: "tambahkan piring saji").
+    2. *AI Vision Analisa*: AI menganalisis gambar asli yang ada di kanvas untuk memahami detail objek utama (bentuk, warna, sudut pandang, pencahayaan).
+    3. *AI Generate Konsisten*: AI meramu prompt gabungan yang mempertahankan karakteristik objek asli tanpa mengubah bagian yang tidak diminta.
+    4. *AI Check Ulang (QC Engine)*: Sistem memvalidasi dan memotong latar belakang secara bersih.
+    5. *Kirim ke Kanvas*: Menyerahkan hasil baru yang utuh dan menyatu ke Mas Bima.
+- **Standar Kualitas Pemotongan Latar & Anti-Fringe (Temuan 13 Okt 2026)**:
+  - **Prinsip Anti-Fringe Tanpa Rusak Objek**: Mas Bima sangat peka terhadap garis kotor di sekeliling objek (fringe putih pada ombak/busa air, dan tepi terlalu kabur/soft edge pada perabot kursi).
+  - **Larangan Gaussian Blur Global**: Jangan pernah mem-blur seluruh gambar atau mask secara membabi-buta karena akan menghilangkan ketajaman tekstur dan batas kontur furnitur.
+  - **Dekontaminasi Warna (Bukan Sekadar Hapus Warna)**: Membersihkan sisa pantulan warna latar belakang lama di piksel pinggiran dengan teknik pemulihan warna asli objek terdekat (color bleeding/unmixing), bukan menghapus kasar warna putih/hitam yang bisa melubangi busa ombak putih.
+  - **Perlindungan Detail Halus**: Elemen semi-transparan seperti busa ombak, percikan air, serat kain, atau kaca harus tetap mempertahankan transparansi bertahap (alpha parsial), tidak boleh dibuat kaku/gerigi.
+  - **Fleksibilitas Kendali**: Pengguna menginginkan slider/opsi kendali (Ketegasan Tepi, Dekontaminasi, Pembersih Debu) dan tombol perbandingan sebelum/sesudah serta opsi mematikan proses jika tidak diperlukan.
+- **Standar Estetika & Visual Studio (Temuan 13 Okt 2026)**:
+  - **Gaya Desain Utama**: *Cosmic Dark Glassmorphism + Modern*.
+  - **Karakteristik Visual**:
+    - Latar belakang gelap kosmik (`#080C15`) dengan efek semburat cahaya aurora lembut (ungu-magenta di kiri bawah dan cyan di kanan).
+    - Permukaan panel memakai efek kaca tembus pandang (*glassmorphism / backdrop-blur*) dengan garis tepi tipis semi-transparan yang elegan.
+    - Elemen yang sedang aktif diberi aksen bingkai neon menyala (*glowing neon border* ungu-pink pada menu sidebar dan biru-cyan pada kartu mode).
+    - Tombol aksi utama menggunakan gradasi warna cerah modern yang menyala tegas (ungu-magenta untuk Optimalkan, biru-indigo-fuchsia untuk Buat Elemen).
+  - **Penyelarasan Presisi Redesain 1:1 (Permintaan 13 Okt 2026)**:
+    - Kanvas inspeksi memiliki efek kilau pantulan kaca (*specular gloss streak*) yang membentang diagonal untuk kesan layar kaca premium.
+    - Tombol melayang di bawah kanvas hanya 2 tombol utama: "Buat Ulang" dan "Simpan ke Koleksi" (tombol unduh berada di setiap kartu koleksi kanan dan tombol HD/Vektor berada di toolbar atas).
+    - Dot uji latar toolbar atas diselaraskan: Putih Bersih, Biru Muda / Cyan Cerah, dan Hitam Pekat.
+    - Koleksi sidebar kanan menampilkan kartu dengan pratinjau bersih (tanpa kotak putih mengganggu), judul dan tombol Salin, Unduh, Hapus yang rapi.
+    - Tombol "+ Tambah Elemen Baru" diselaraskan agar harmonis tanpa membuat daftar kartu terdorong sesak.
+    - **Koreksi Kartu Pemilih Mode (Selector Transparan)**: Kartu mode yang aktif ("Tanpa Latar No BG", dsb) HARAM diwarnai ngeblok/solid warna-warni. Bagian dalam kartu wajib tetap transparan/kaca gelap (dark glass) dengan hanya garis pinggir (border neon) tipis yang menyala.
+    - **Koreksi Latar Belakang & Panel Studio**: Panel navigasi kiri, header atas, dan panel koleksi kanan HARAM menjadi "ngeblok" warna ungu atau cyan. Semua panel wajib tetap berwarna kaca gelap bersih (*dark glass*). Pendaran aurora hanya berupa semburat atmosfer lembut dan tenang di latar belakang, bukan warna pekat yang menodai panel kerja.
+    - **Preferensi Proses Peningkatan HD & Indikator Progres (Temuan 13 Okt 2026)**:
+      - **Kualitas Visual HD Murni**: Menolak perbesaran piksel kasar/bergerigi (akibat interpolasi tajam semu). Menginginkan detail yang diperkaya secara alami dan halus menggunakan AI Super Resolution sejati.
+      - **Indikator Progres Persentase (%) Nyata**: Sangat menyukai tampilan proses dengan persentase (%) dan pesan status tahapan yang jelas saat AI bekerja, karena memberikan kepastian dan kenyamanan psikologis ("manusia lebih suka kayak gitu") dibanding sekadar roda berputar (spinner) tanpa kejelasan.
+    - **Ekspektasi Pemotongan Celah/Rongga Sempit (Temuan 13 Okt 2026)**:
+      - Mas Bima mengamati sisa latar belakang yang tertinggal di celah-celah sempit tipografi 3D (seperti di antara huruf "IKI JEPORO LET!").
+      - Mas Bima mengira model AI Vision (seperti Gemini) yang memotong piksel secara langsung, sehingga mengharapkan AI memahami lokasi piksel sampai ke rongga-rongga terdalam.
+      - Mengharapkan pemotongan latar belakang yang mampu membersihkan sela-sela/lubang tembus (*negative space*) tanpa meninggalkan bercak warna latar lama atau bayangan abu-abu yang terjepit.
+    - **Ekspektasi Optimizer Tipografi 3D Adaptif (Temuan 13 Okt 2026)**:
+      - Mas Bima mengkritisi tombol Optimizer di mode Tipografi 3D yang selalu menghasilkan kata-kata template fotografi kaku yang berulang ("foto profesional terpotong melayang kualitas studio, tekstur fotorealistis sangat tajam...").
+      - Tipografi 3D DILARANG KERAS ditempeli kata-kata fotografi objek.
+      - Pengoptimalan tipografi wajib berfokus murni pada estetika huruf: ketebalan timbul 3D (*extrusion*), sudut bevel berkilau/matte, outline garis stiker tegas (*die-cut*), dan bayangan timbul (*pop-up*), serta membaca warna dan bahan yang diketik pengguna secara fleksibel dan bervariasi.
+    - **Wawasan Mas Bima: Latar Belakang Kontras / Layar Hijau (Chroma Key) (Temuan 13 Okt 2026)**:
+      - Mas Bima secara mandiri menemukan solusi akar masalah pemotongan: warna latar belakang awal dari AI harus menggunakan warna yang sangat kontras (seperti hijau layar studio / chroma green atau biru chroma), bukan warna putih.
+      - Alasan & Manfaat:
+        1. Mencegah kilau putih pada objek (pantulan cahaya logam, plastik, kaca) ikut terpotong atau tergerus oleh mesin penghapus latar.
+        2. Memastikan sela-sela dan lubang tembus huruf (seperti lubang O, P, R, 0, %) dikenali dengan jelas dan tidak menyisakan bercak putih semi-transparan.
+      - Syarat Adaptif: Sistem harus otomatis menghindari warna latar yang sama dengan warna objek utama (misal: jika objeknya daun/tanaman hijau, latar otomatis menggunakan warna biru/magenta kontras agar objek tidak ikut lenyap).
+    - **Ekspektasi Fitur Vektor SVG Murni & Gambar-ke-Gambar (Temuan 13 Okt 2026)**:
+      - **SVG Berbasis Pemahaman AI (Bukan Tracing Biasa)**:
+        - Mas Bima menginginkan AI yang mampu "melihat" gambar contoh (seperti foto/PNG mouse), memahami struktur bentuknya (tombol, lekukan, bodi), lalu menggambar ulang dari nol menjadi kurva vektor (SVG) yang rapi, bukan sekadar menggunakan alat konversi/tracing mekanis (potrace/vtracer) yang sering menghasilkan ribuan titik kurva bergerigi.
+        - Mental model: Seperti desainer grafis yang menggambar ulang objek di Illustrator dengan Pen Tool bersih.
+      - **Gambar-ke-Gambar (Image-to-Image / Pinterest Reference)**:
+        - Mas Bima membutuhkan kemampuan memberikan gambar referensi (misalnya mengambil inspirasi visual dari Pinterest), lalu meminta AI menghasilkan elemen atau objek baru yang memiliki gaya visual, komposisi, atau estetika serupa dengan gambar referensi tersebut.
+        - **Mental Model Penguncian Karakter/Subjek Referensi (Temuan 13 Okt 2026)**:
+          - Ketika Mas Bima memasukkan gambar contoh (misal: kucing hitam polos) lalu mengetik instruksi (misal: "kucing nya pake jas"), Mas Bima mengekspektasikan **kucing hitam yang sama persis** yang dipakaikan jas, BUKAN kucing lain (seperti kucing hitam-putih / tuxedo).
+          - AI pembuat gambar rentan melenceng karena kata "jas / tuxedo" sering memicu AI menggambar ras kucing tuxedo (yang punya bulu putih di dada dan wajah).
+          - Sistem wajib secara tegas mengunci **identitas fisik subjek** dari gambar referensi (spesies, warna bulu/bahan solid, fitur fisik) dan menginstruksikan AI agar subjek persis tersebut yang dimodifikasi, bukan menggantinya dengan subjek baru.
+        - **Terobosan Arsitektur Gambar-ke-Gambar 9Router (Temuan 14 Okt 2026)**:
+          - Pada 9Router lokal, mesin pembuat gambar yang aktif dan mendukung pengiriman gambar referensi murni (*multimodal image-to-image*) adalah `ag/gemini-3.1-flash-image` (Google Antigravity).
+          - 9Router membutuhkan berkas gambar referensi dikirimkan langsung di dalam muatan data (`payload['image'] = base64`) agar AI memegang langsung gambar aslinya secara visual.
+          - Hasil pengujian membuktikan: Kucing hitam pekat solid Mas Bima dipertahankan 100% utuh (tanpa belang, tanpa putih di dada), dan topi nelayan (*bucket hat*) terpasang sempurna di kepalanya dengan latar belakang terpotong bersih secara otomatis (QC Status: PASS).
+    - **Prinsip Mutlak Pengemasan Aplikasi: 1 Paket Utuh Siap Pakai (All-in-One Standalone Package) (Temuan 14 Okt 2026)**:
+      - **Standar 1 Paket Mandiri**: Mas Bima menegaskan bahwa aplikasi wajib dibungkus menjadi **1 paket komplit utuh**.
+      - Seluruh komponen (Tampilan Antarmuka Studio React, Mesin Utama Rust/Tauri, Model AI Otak Pemotong Latar `isnet-general-use.onnx`, dan Mesin AI Peningkat Kualitas HD `realesrgan-ncnn-vulkan.exe`) wajib menyatu di dalam satu paket instalasi.
+      - Pengguna yang memasang aplikasi dilarang dibebani tugas unduh berkas atau konfigurasi tambahan apapun dari internet.
+      - **Jadwal Eksekusi Build**: Mas Bima memutuskan proses *build* ke format aplikasi desktop (.exe) akan dieksekusi nanti saat Mas Bima sudah berada di kantor. Selama belum diinstruksikan di kantor, sistem tetap berjalan di mode web development lokal.
+    - **Kebutuhan Fitur Wallpaper & Background Maker Semua Perangkat (Temuan 14 Okt 2026)**:
+      - **Pembuat Wallpaper & Background Multi-Device**: Fitur khusus untuk memproduksi latar belakang atau wallpaper untuk komputer/laptop, ponsel (HP), maupun tablet dari berbagai merek.
+      - **Katalog Template & Mesin Pencari Dimensi Layar**:
+        - Menyediakan pilihan standar (default) untuk tiap kategori umum.
+        - Menyediakan daftar ukuran spesifik berbagai model/merek populer dengan fitur pencarian (search bar) agar mudah ditemukan.
+      - **Dukungan Gambar-ke-Gambar (img2img)**: Fitur wallpaper maker wajib mendukung alur kerja referensi gambar.
+      - **Perombakan Antarmuka (UI) Referensi img2img (Temuan 14 Okt 2026)**:
+        - Kotak gambar referensi dipindahkan dari bilah bawah ke **sudut kiri atas meja kanvas inspeksi** (area kotak merah pilihan Mas Bima).
+        - **Keputusan Penempatan Opsi B**: Kotak Reference WAJIB selalu ada dan tampak di pojok kiri atas kanvas bahkan sebelum ada foto yang dimasukkan, dan bisa langsung diklik untuk memasang foto.
+        - **Anti-Kosmetik**: Seluruh elemen antarmuka (klik unggah, seret-lepas drag-and-drop, hapus/silang, ganti) wajib bekerja 100% nyata tanpa ada tombol pajangan.
+        - **Jarak Teks Input Prompt**: Jarak antara tombol ikon referensi dan teks perintah di kolom input diperbaiki/diberi ruang lega agar tidak menempel.
+        - **Kemampuan Skala Bebas (Scalable Reference Box)**: Kotak Reference dapat diatur ukurannya secara bebas oleh pengguna (bisa diperbesar atau diperkecil sesuka hati dengan menarik gagang di sudut kanan bawah kotak) dan ukurannya diingat otomatis.
+        - **Pilihan Tingkat Kemiripan (60% - 100%)**:
+          - Tersedia tombol cepat kemiripan: **60%, 70%, 80%, 90%, dan 100%** di kotak Reference.
+          - 60%: Inspirasi gaya & warna umum dengan kebebasan berkreasi tinggi.
+          - 70%: Karakteristik dasar serupa dengan adaptasi fleksibel.
+          - 80%: Kemiripan tinggi seimbang (rekomendasi bawaan).
+          - 90%: Karakter fisik & subjek terkunci sangat ketat.
+          - 100%: Identik murni 100% (Subjek mutlak sama, bentuk & warna fisik dikunci penuh).
+          - Mesin AI backend telah dibersihkan dari sisa uji coba lama (tanpa teks kucing hitam) sehingga bekerja universal untuk semua jenis benda.
+          - **Tata Letak Bilah Kemiripan di Bawah Foto (Anti-Overlay)**: Bilah kemiripan diposisikan persis di bawah bingkai foto (bukan menutupi foto), menyatu dalam 1 widget berskala sehingga foto terlihat 100% utuh dari atas sampai bawah, dan bilah ikut membesar/mengecil bersamaan saat sudut ditarik.
+        - **Visibilitas Tombol Aksi Kartu Koleksi (Salin, Unduh, Hapus)**: Tombol aksi pada kartu koleksi dibuat sangat tegas dan mudah dikenali dengan latar tombol solid bertema warna: Biru untuk Salin, Hijau Zamrud untuk Unduh, dan Merah Mawar untuk Hapus.
+        - **Opsi Ukuran Bebas / Kustom (Custom Size)**: Selain memilih template yang tersedia, pengguna juga dapat memasukkan dimensi lebar dan tinggi (Width × Height dalam piksel) secara bebas dan manual jika memiliki kebutuhan ukuran khusus.
+      - **Penyempurnaan Prompt Optimizer Berbasis AI Vision Referensi (Temuan 14 Okt 2026)**:
+        - Mas Bima menginstruksikan agar tombol Optimizer bekerja lebih cerdas saat ada gambar referensi (reference image).
+        - AI Vision wajib menganalisis gambar referensi terlebih dahulu untuk menangkap ciri fisik subjek, detail material/tekstur, palet warna, dan gaya visualnya.
+        - Hasil analisis visual tersebut kemudian diramu bersama instruksi teks yang diketik Mas Bima sesuai konteks yang diinginkan, sehingga prompt yang dioptimalkan mengunci karakteristik referensi dengan presisi tinggi dan tidak melenceng.
+      - **Ekspektasi Tampilan Kanvas & Ukuran Resolusi Wallpaper (Temuan 14 Okt 2026)**:
+        - Mas Bima sangat jeli terhadap tampilan kanvas: gambar di panggung kanvas DILARANG terpotong (misal bagian helm ksatria terpotong karena pembesaran paksa `object-cover`). Kanvas wajib menampilkan seluruh gambar secara utuh (`object-contain`).
+        - Ekspektasi ukuran wallpaper: File yang diunduh wajib berukuran resolusi asli sesuai template yang dipilih (misal 4K UHD 3840 × 2160 px atau FHD+ HP 1080 × 2400 px), bukan ukuran kotak biasa (1024 × 1024 px). Mesin backend wajib memastikan rasio melebar dan resolusi target piksel terpenuhi dengan kualitas halus tanpa buram.
+      - **Arsitektur Tata Letak Studio Ergonomis Baru (Temuan 14 Okt 2026)**:
+        - **Menu Mode Kerja Studio Pindah ke Bilah Atas (Top Header)**: Tombol tab mendatar (Objek Grafis, Tipografi 3D, Wallpaper & BG, Laci Koleksi, Pengaturan AI) diposisikan di bilah atas samping logo agar tidak memakan ruang samping.
+        - **Pusat Kendali & Pengetikan Prompt di Sisi Kiri (Side Left)**: Seluruh kolom pengetikan ide (prompt) dan tombol eksekusi dipindahkan dari bawah ke panel kiri.
+        - **Kotak Prompt Diperbesar Ekstra Lega**: Mas Bima menginginkan kotak pengetikan prompt di sidebar dibuat tinggi dan besar (mengisi area kotak merah hingga ~260px) agar sangat lega dan nyaman untuk mengetik ide panjang tanpa merasa sempit.
+        - **Kanvas Tengah Menjadi Maksimal**: Karena bilah bawah dihilangkan, panggung meja kerja kanvas tengah menjadi luas dan tinggi maksimal.
+      - **Posisi Badge Kualitas HD & 3D Teks (Temuan 14 Okt 2026)**:
+        - Mas Bima mengamati logo/badge "HD" pada kartu koleksi sempat tertimpa oleh foto thumbnail wallpaper.
+        - Badge HD dan 3D teks wajib diletakkan mengapung langsung di sudut kiri atas thumbnail dengan lapisan teratas (`z-20`), latar kaca hitam kontras tinggi (`bg-black/85`), dan garis bingkai tegas emas/biru agar selalu terbaca jelas dan tidak pernah tertimpa atau terpotong gambar.
+      - **Kehalusan Tarik Skala Kotak Reference (Temuan 14 Okt 2026)**:
+        - Mas Bima merasakan gerakan patah-patah/nge-lag saat menarik sudut untuk memperbesar/memperkecil kotak Reference.
+        - Penyebab: Efek animasi CSS halus (`transition-all`) yang aktif saat dragging bertabrakan dengan pergerakan kursor mouse secara konstan, ditambah listener browser yang dimuat ulang setiap piksel.
+        - Solusi: Mematikan animasi transisi (`transition-none`) selama kursor sedang menarik sudut, dan mengunci sinkronisasi layar menggunakan `requestAnimationFrame` (60–120 FPS) agar perbesaran terasa sangat licin, responsif, dan instan mengikuti ujung kursor.
+      - **Pengujian Ketat Keselarasan Referensi Visual (Insiden Ksatria vs Bebek - Temuan 14 Okt 2026)**:
+        - Mas Bima menguji kemampuan AI Vision pada mode Wallpaper dengan memasukkan gambar referensi **ksatria berbaju zirah baja lengkap di padang bunga poppy merah** dengan tingkat Kemiripan **100%**.
+        - Mas Bima sangat jeli menyoroti ketidaksinkronan ketika optimizer menghasilkan teks deskripsi bebek karet kartun ("apakah ini terlihat seperti bebek?").
+        - Hal ini terjadi karena proses server lokal sebelumnya belum sempat memuat ulang logika baru (AI Vision), sehingga permintaan optimasi hanya membaca kata uji coba di kotak input tanpa meneruskan gambar referensi ke mata AI.
+        - Ekspektasi Mas Bima: Begitu ada foto di kotak Reference (terutama dengan kemiripan 100%), subjek dari foto referensi (ksatria zirah) adalah **subjek mutlak** yang harus dikunci penuh oleh AI Vision, dan tidak boleh digantikan oleh objek lain.
+      - **Integrasi Keahlian Desain Visual & Komposisi Profesional (visual-design-rules - Temuan 14 Okt 2026)**:
+        - Mas Bima merumuskan panduan desain komprehensif (`visual-design-rules`) yang mencakup Golden Ratio (1:1.618), Rule of Thirds, 3 Bidang Kedalaman Ruang (Foreground, Midground, Background), Harmoni Warna 60-30-10, pencahayaan 3-titik (Key, Fill, Rim), dan ruang bernapas (negative space 25-40%).
+        - **Konsensus Penempatan Estetika**:
+          - *Default Generate*: Dilarang menyuntikkan aturan warna atau komposisi kaku agar permintaan kemiripan 100% (Identik) tetap murni sesuai foto referensi tanpa terdistorsi.
+          - *Tombol "Optimalkan ✨"*: Prinsip estetika diterapkan di sini secara transparan dan adaptif. Jika kemiripan 100%, bentuk fisik dan warna subjek dikunci mati, sedangkan kaidah komposisi hanya membimbing pembingkaian (framing) dan suasana lingkungan di sekeliling subjek.
+        - File keahlian telah resmi dipasang di sistem (`~/.gemini/config/skills/visual-design-rules/SKILL.md`) dan dihubungkan ke mesin pengoptimal prompt backend.
+      - **Klarifikasi Sesi AG IDE (Penyelidikan Bebek vs Ksatria - Temuan 14 Okt 2026)**:
+        - Asisten AG IDE sempat curiga terjadi halusinasi karena melihat catatan riwayat lama di log server yang menyebutkan "rubber duck".
+        - Hasil penelusuran: Catatan tersebut berasal dari sesi uji coba pengiriman data lama sebelum foto ksatria zirah dimasukkan, bukan kerusakan atau halusinasi pada pembaca gambar.
+        - Mesin server baru sudah dipastikan membaca foto ksatria secara akurat dan tidak ada lagi sisa data bebek yang tertinggal.
+      - **Transisi ke Mode Produksi (Production Ready Build) & Publikasi GitHub (Temuan 14 Okt 2026)**:
+        - Mas Bima menginstruksikan transisi resmi dari mode web development lokal ke pengemasan aplikasi desktop menggunakan Rust (Tauri).
+        - Mas Bima menginstruksikan setelah aplikasi berhasil di-build, seluruh kode proyek langsung di-push ke repositori GitHub resmi `Luciansvon/Element-Maker`.
+        - Prinsip utama: Aplikasi desktop berformat mandiri (standalone .exe), menyalakan backend secara otomatis dan hening tanpa jendela hitam CMD, serta menutup seluruh proses secara bersih saat aplikasi ditutup.
+        - Penanganan Berkas Raksasa: Berkas model AI `isnet-general-use.onnx` (178 MB) dan arsip zip dipisahkan dari riwayat pelacakan Git agar mematuhi batas maksimal berkas GitHub (100 MB), namun tetap utuh menyatu di dalam paket aplikasi komputer lokal Mas Bima.
