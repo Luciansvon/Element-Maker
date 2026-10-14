@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import io
 import re
@@ -58,6 +59,15 @@ class AIGatewayService:
     """
     Layanan jembatan penghubung antara Element Maker dengan 9Router atau API AI kustom.
     """
+
+    async def _fetch_image_from_url(self, client: httpx.AsyncClient, img_url: str) -> Image.Image:
+        img_resp = await client.get(img_url)
+        img_resp.raise_for_status()
+        if len(img_resp.content) > MAX_BASE64_LENGTH:
+            raise ValueError("Ukuran gambar dari URL terlalu besar (melebihi batas aman 20 MB).")
+        img = Image.open(io.BytesIO(img_resp.content))
+        img.load()
+        return img.convert("RGBA")
 
     async def resolve_api_key(self, base_url: str = DEFAULT_9ROUTER_URL, api_key: str = "") -> str:
         """
@@ -248,8 +258,7 @@ class AIGatewayService:
             if "b64_json" in first_item:
                 raw_image = base64_to_image(first_item["b64_json"])
             elif "url" in first_item:
-                img_resp = await client.get(first_item["url"])
-                raw_image = Image.open(io.BytesIO(img_resp.content))
+                raw_image = await self._fetch_image_from_url(client, first_item["url"])
             else:
                 raise Exception("Format gambar tidak dikenali dari respon AI.")
 
@@ -257,7 +266,9 @@ class AIGatewayService:
         qc_report = None
         final_image = raw_image
         if mode in ["no_bg", "plain_bg"]:
-            final_image, qc_report = bg_qc_engine.process_image(raw_image, glass_mode=glass_mode)
+            final_image, qc_report = await asyncio.to_thread(
+                bg_qc_engine.process_image, raw_image, glass_mode=glass_mode
+            )
 
             # Jika mode Latar Polos (Plain BG): tempelkan objek yang terpotong bersih ke kanvas warna polos pilihan Mas Bima
             if mode == "plain_bg":
@@ -269,10 +280,13 @@ class AIGatewayService:
         # Jika mode Wallpaper: pastikan resolusi keluaran pas dengan dimensi target piksel perangkat (misal 3840x2160)
         if mode == "wallpaper" and target_width and target_height:
             if final_image.size != (target_width, target_height):
-                final_image = final_image.resize((target_width, target_height), Image.Resampling.LANCZOS)
+                final_image = await asyncio.to_thread(
+                    final_image.resize, (target_width, target_height), Image.Resampling.LANCZOS
+                )
 
+        b64_output = await asyncio.to_thread(image_to_base64, final_image)
         return {
-            "image_base64": f"data:image/png;base64,{image_to_base64(final_image)}",
+            "image_base64": f"data:image/png;base64,{b64_output}",
             "prompt_used": steered_prompt,
             "mode": mode,
             "aspect_ratio": aspect_ratio,
@@ -355,9 +369,10 @@ class AIGatewayService:
                     first_item = result["data"][0]
                     if "b64_json" in first_item:
                         edited_image = base64_to_image(first_item["b64_json"])
+                    elif "url" in first_item:
+                        edited_image = await self._fetch_image_from_url(client, first_item["url"])
                     else:
-                        img_resp = await client.get(first_item["url"])
-                        edited_image = Image.open(io.BytesIO(img_resp.content))
+                        raise Exception("Format gambar tidak dikenali dari respon AI.")
                 elif resp.status_code == 401 or "invalid_api_key" in resp.text:
                     raise Exception("Sambungan 9Router membutuhkan Kunci Akses (API Key). Silakan buka menu Pengaturan (ikon roda gigi) di bilah atas untuk memasukkan API Key.")
         except Exception as e:
@@ -372,8 +387,11 @@ class AIGatewayService:
             combined_prompt = f"{prompt.strip()}"
             if original_prompt.strip():
                 combined_prompt = f"{original_prompt.strip()}, with addition of {prompt.strip()}"
-            chroma_tag = get_adaptive_chroma_tag(combined_prompt)
-            combined_prompt += f", single isolated graphic element, centered, {chroma_tag}, sharp edges, clean isolated cutout ready"
+            if no_bg:
+                chroma_tag = get_adaptive_chroma_tag(combined_prompt)
+                combined_prompt += f", single isolated graphic element, centered, {chroma_tag}, sharp edges, clean isolated cutout ready"
+            else:
+                combined_prompt += ", harmonious background integration, maintain original background atmosphere and lighting"
             used_prompt = combined_prompt
 
             gen_url = f"{base_url.rstrip('/')}/images/generations"
@@ -400,9 +418,18 @@ class AIGatewayService:
                 first_item = gen_data["data"][0]
                 if "b64_json" in first_item:
                     edited_image = base64_to_image(first_item["b64_json"])
+                elif "url" in first_item:
+                    edited_image = await self._fetch_image_from_url(client, first_item["url"])
                 else:
-                    img_resp = await client.get(first_item["url"])
-                    edited_image = Image.open(io.BytesIO(img_resp.content))
+                    raise Exception("Format gambar tidak dikenali dari respon AI.")
+
+        # Pemotongan latar via QC Engine dijalankan terlebih dahulu jika no_bg aktif
+        qc_report = None
+        if no_bg:
+            edited_image, qc_report = await asyncio.to_thread(bg_qc_engine.process_image, edited_image)
+
+        if qc_report is not None:
+            qc_report["inpaint_mode"] = "fallback_regeneration" if is_fallback else "native_edit"
 
         # 2. Rekat Ulang Piksel Asli (Pixel Preservation Compositing Cerdas)
         # Deteksi apakah perintah adalah penambahan objek baru
@@ -424,15 +451,9 @@ class AIGatewayService:
             except Exception as comp_err:
                 print(f"Warning compositing pixel lock: {comp_err}")
 
-        qc_report = None
-        if no_bg:
-            edited_image, qc_report = bg_qc_engine.process_image(edited_image)
-
-        if qc_report is not None:
-            qc_report["inpaint_mode"] = "fallback_regeneration" if is_fallback else "native_edit"
-
+        b64_output = await asyncio.to_thread(image_to_base64, edited_image)
         return {
-            "image_base64": f"data:image/png;base64,{image_to_base64(edited_image)}",
+            "image_base64": f"data:image/png;base64,{b64_output}",
             "prompt_used": used_prompt,
             "qc_report": qc_report,
         }
@@ -623,18 +644,20 @@ class AIGatewayService:
             first_item = gen_data["data"][0]
             if "b64_json" in first_item:
                 edited_image = base64_to_image(first_item["b64_json"])
+            elif "url" in first_item:
+                edited_image = await self._fetch_image_from_url(client, first_item["url"])
             else:
-                img_resp = await client.get(first_item["url"])
-                edited_image = Image.open(io.BytesIO(img_resp.content))
+                raise Exception("Format gambar tidak dikenali dari respon AI.")
 
         # Tahap 4: AI Check Ulang & Bersihkan Latar (QC Engine)
         qc_report = None
         if no_bg:
-            edited_image, qc_report = bg_qc_engine.process_image(edited_image)
+            edited_image, qc_report = await asyncio.to_thread(bg_qc_engine.process_image, edited_image)
 
         # Tahap 5: Kirim ke User
+        b64_output = await asyncio.to_thread(image_to_base64, edited_image)
         return {
-            "image_base64": f"data:image/png;base64,{image_to_base64(edited_image)}",
+            "image_base64": f"data:image/png;base64,{b64_output}",
             "prompt_used": steered_prompt,
             "vision_analysis": vision_analysis,
             "qc_report": qc_report,

@@ -31,25 +31,17 @@ export default function WallpaperTemplateModal({
 
   // State untuk form ukuran kustom
   const [customWidth, setCustomWidth] = useState(
-    customDimensions?.width || selectedTemplate?.width || 1920
+    selectedTemplate?.width || customDimensions?.width || 1920
   );
   const [customHeight, setCustomHeight] = useState(
-    customDimensions?.height || selectedTemplate?.height || 1080
+    selectedTemplate?.height || customDimensions?.height || 1080
   );
 
   // Sinkronkan customWidth dan customHeight saat modal dibuka (isOpen menjadi true)
   useEffect(() => {
     if (isOpen) {
-      if (customDimensions?.width) {
-        setCustomWidth(customDimensions.width);
-      } else if (selectedTemplate?.width) {
-        setCustomWidth(selectedTemplate.width);
-      }
-      if (customDimensions?.height) {
-        setCustomHeight(customDimensions.height);
-      } else if (selectedTemplate?.height) {
-        setCustomHeight(selectedTemplate.height);
-      }
+      setCustomWidth(selectedTemplate?.width || customDimensions?.width || 1920);
+      setCustomHeight(selectedTemplate?.height || customDimensions?.height || 1080);
     }
   }, [isOpen, customDimensions, selectedTemplate]);
 

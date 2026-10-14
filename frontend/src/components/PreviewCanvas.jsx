@@ -658,6 +658,19 @@ export default function PreviewCanvas({
             <BookmarkPlus className="w-4 h-4 text-white" />
             <span>Simpan ke Koleksi</span>
           </button>
+
+          {/* Tombol Unduh */}
+          {onDownload && (
+            <button
+              onClick={() => onDownload(currentElement)}
+              disabled={isGenerating}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#111827]/85 hover:bg-[#1C2638] backdrop-blur-xl border border-white/[0.12] text-white text-xs sm:text-sm font-semibold shadow-2xl transition-all hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer"
+              title="Unduh elemen ini ke komputer"
+            >
+              <Download className="w-4 h-4 text-slate-300" />
+              <span>Unduh</span>
+            </button>
+          )}
         </div>
       )}
     </div>

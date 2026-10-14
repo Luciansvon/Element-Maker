@@ -243,4 +243,164 @@ async def test_openai_inpaint_mask_transparency(monkeypatch):
     assert inside_pixel[3] == 0, f"Area masked harus memiliki alpha=0 (transparan), didapat: {inside_pixel[3]}"
 
 
+@pytest.mark.anyio
+async def test_fetch_image_from_url_success():
+    """
+    Menguji fungsi _fetch_image_from_url berhasil mengunduh gambar dan mengonversi ke RGBA.
+    """
+    from unittest.mock import AsyncMock, MagicMock
+    from backend.services.ai_gateway import ai_gateway
+
+    test_img = Image.new("RGB", (20, 20), (255, 0, 0))
+    buf = io.BytesIO()
+    test_img.save(buf, format="PNG")
+    img_bytes = buf.getvalue()
+
+    mock_resp = MagicMock()
+    mock_resp.content = img_bytes
+    mock_resp.raise_for_status = MagicMock()
+
+    mock_client = AsyncMock()
+    mock_client.get.return_value = mock_resp
+
+    result = await ai_gateway._fetch_image_from_url(mock_client, "http://fake.url/test.png")
+    assert result.mode == "RGBA"
+    assert result.size == (20, 20)
+    mock_client.get.assert_called_once_with("http://fake.url/test.png")
+    mock_resp.raise_for_status.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_fetch_image_from_url_oversized_reject():
+    """
+    Menguji bahwa _fetch_image_from_url menolak gambar dari URL dengan ukuran > 20 MB.
+    """
+    from unittest.mock import AsyncMock, MagicMock
+    from backend.services.ai_gateway import ai_gateway, MAX_BASE64_LENGTH
+
+    mock_resp = MagicMock()
+    mock_resp.content = b"x" * (MAX_BASE64_LENGTH + 1)
+    mock_resp.raise_for_status = MagicMock()
+
+    mock_client = AsyncMock()
+    mock_client.get.return_value = mock_resp
+
+    with pytest.raises(ValueError, match="Ukuran gambar dari URL terlalu besar"):
+        await ai_gateway._fetch_image_from_url(mock_client, "http://fake.url/large.png")
+
+
+@pytest.mark.anyio
+async def test_inpaint_fallback_prompt_no_bg_true(monkeypatch):
+    """
+    Menguji bahwa saat fallback /images/generations aktif dengan no_bg=True,
+    prompt menyertakan chroma tag studio green/blue screen dan isolated cutout.
+    """
+    from unittest.mock import MagicMock
+    from backend.services.ai_gateway import ai_gateway
+
+    orig = Image.new("RGBA", (30, 30), (255, 0, 0, 255))
+    mask = Image.new("L", (30, 30), 255)
+
+    captured_prompt = None
+
+    class MockAsyncClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+        async def post(self, url, *args, **kwargs):
+            nonlocal captured_prompt
+            if "/images/edits" in url:
+                mock_err = MagicMock()
+                mock_err.status_code = 500
+                mock_err.text = "Not supported"
+                return mock_err
+            if "/images/generations" in url:
+                captured_prompt = kwargs["json"]["prompt"]
+                mock_ok = MagicMock()
+                mock_ok.status_code = 200
+                mock_ok.json.return_value = {"data": [{"b64_json": image_to_base64(orig)}]}
+                return mock_ok
+            return MagicMock(status_code=400)
+
+    import httpx
+    monkeypatch.setattr(httpx, "AsyncClient", MockAsyncClient)
+
+    res = await ai_gateway.inpaint_element(
+        image_base64=image_to_base64(orig),
+        mask_base64=image_to_base64(mask.convert("RGBA")),
+        prompt="daun hijau segar",
+        original_prompt="tanaman pot",
+        no_bg=True,
+    )
+
+    assert captured_prompt is not None
+    assert "single isolated graphic element" in captured_prompt
+    assert "clean isolated cutout ready" in captured_prompt
+    assert "#0000FF" in captured_prompt or "chroma blue" in captured_prompt
+    assert res["qc_report"]["inpaint_mode"] == "fallback_regeneration"
+
+
+@pytest.mark.anyio
+async def test_inpaint_fallback_prompt_no_bg_false(monkeypatch):
+    """
+    Menguji bahwa saat fallback /images/generations aktif dengan no_bg=False,
+    prompt menyertakan integrasi latar belakang asli dan TIDAK menyertakan chroma tag.
+    """
+    from unittest.mock import MagicMock
+    from backend.services.ai_gateway import ai_gateway
+
+    orig = Image.new("RGBA", (30, 30), (255, 0, 0, 255))
+    mask = Image.new("L", (30, 30), 255)
+
+    captured_prompt = None
+
+    class MockAsyncClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
+
+        async def post(self, url, *args, **kwargs):
+            nonlocal captured_prompt
+            if "/images/edits" in url:
+                mock_err = MagicMock()
+                mock_err.status_code = 500
+                mock_err.text = "Not supported"
+                return mock_err
+            if "/images/generations" in url:
+                captured_prompt = kwargs["json"]["prompt"]
+                mock_ok = MagicMock()
+                mock_ok.status_code = 200
+                mock_ok.json.return_value = {"data": [{"b64_json": image_to_base64(orig)}]}
+                return mock_ok
+            return MagicMock(status_code=400)
+
+    import httpx
+    monkeypatch.setattr(httpx, "AsyncClient", MockAsyncClient)
+
+    res = await ai_gateway.inpaint_element(
+        image_base64=image_to_base64(orig),
+        mask_base64=image_to_base64(mask.convert("RGBA")),
+        prompt="tambahkan cangkir kopi",
+        original_prompt="meja kayu di kafe",
+        no_bg=False,
+    )
+
+    assert captured_prompt is not None
+    assert "harmonious background integration, maintain original background atmosphere and lighting" in captured_prompt
+    assert "chroma" not in captured_prompt
+    assert "clean isolated cutout ready" not in captured_prompt
+
+
+
 

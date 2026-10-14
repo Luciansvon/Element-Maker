@@ -363,9 +363,10 @@ export default function App() {
     } else if (activeTab === 'typography') {
       await handleGenerateTypography();
     } else {
-      const targetPrompt = prompt.trim() || (currentElement && currentElement.prompt) || '';
-      if (targetPrompt && currentElement && currentElement.prompt) {
-        setPrompt(currentElement.prompt);
+      const fallbackPrompt = (currentElement && currentElement.prompt) || '';
+      const targetPrompt = prompt.trim() || fallbackPrompt;
+      if (!prompt.trim() && fallbackPrompt) {
+        setPrompt(fallbackPrompt);
       }
       await handleGenerate(targetPrompt);
     }
@@ -493,12 +494,20 @@ export default function App() {
       if (isSvg) {
         let svgContent = target.svg_code;
         if (!svgContent && target.image_base64 && target.image_base64.includes(',')) {
-          const rawPart = target.image_base64.split(',', 1)[1] || target.image_base64.split(',')[1];
-          svgContent = target.image_base64.includes(';base64,')
-            ? window.atob(rawPart)
-            : decodeURIComponent(rawPart);
+          const commaIndex = target.image_base64.indexOf(',');
+          const rawPart = target.image_base64.slice(commaIndex + 1);
+          if (target.image_base64.includes(';base64,')) {
+            const binaryStr = window.atob(rawPart);
+            const bytes = new Uint8Array(binaryStr.length);
+            for (let i = 0; i < binaryStr.length; i++) {
+              bytes[i] = binaryStr.charCodeAt(i);
+            }
+            svgContent = new TextDecoder('utf-8').decode(bytes);
+          } else {
+            svgContent = decodeURIComponent(rawPart);
+          }
         }
-        const blob = new Blob([svgContent || target.image_base64], { type: 'image/svg+xml' });
+        const blob = new Blob([svgContent || target.image_base64], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -561,18 +570,32 @@ export default function App() {
     }
   };
 
-  // Hapus Elemen dari Koleksi & IndexedDB
-  const handleDeleteElement = async (id) => {
+  // Hapus Elemen dari Koleksi & IndexedDB (Mendukung ID tunggal maupun Array ID)
+  const handleDeleteElement = async (idOrIds) => {
+    const idsToRemove = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+    if (!idsToRemove.length) return;
+
     try {
-      await removeStoredElement(id);
-      setElements((prev) => prev.filter((item) => item.id !== id));
-      if (currentElement && currentElement.id === id) {
-        const remaining = elements.filter((item) => item.id !== id);
-        if (remaining.length > 0) {
-          setCurrentElement(remaining[0]);
-        }
-      }
-      showToast('Elemen berhasil dihapus dari koleksi.', 'info');
+      await Promise.all(idsToRemove.map((id) => removeStoredElement(id)));
+      const idSet = new Set(idsToRemove);
+
+      setElements((prevElements) => {
+        const nextElements = prevElements.filter((item) => !idSet.has(item.id));
+
+        setCurrentElement((prevCurrent) => {
+          if (!prevCurrent || !idSet.has(prevCurrent.id)) {
+            return prevCurrent;
+          }
+          return nextElements.length > 0 ? nextElements[0] : null;
+        });
+
+        return nextElements;
+      });
+
+      const message = idsToRemove.length > 1
+        ? `${idsToRemove.length} elemen berhasil dihapus dari koleksi.`
+        : 'Elemen berhasil dihapus dari koleksi.';
+      showToast(message, 'info');
     } catch (err) {
       showToast(`Gagal menghapus elemen: ${err.message}`, 'error');
     }
@@ -608,6 +631,44 @@ export default function App() {
     }
   };
 
+  // Tangani pemasangan gambar referensi dengan konversi otomatis ke PNG Data URL
+  const handleSetReferenceImage = async (rawDataUrl) => {
+    if (!rawDataUrl) {
+      setReferenceImage(null);
+      return;
+    }
+    try {
+      const pngUrl = await ensurePngDataUrl(rawDataUrl, 1024);
+      setReferenceImage(pngUrl);
+    } catch (err) {
+      console.warn('Gagal memproses gambar referensi ke format PNG:', err);
+      setReferenceImage(rawDataUrl);
+    }
+  };
+
+  // Fungsi terpadu saat elemen dipilih dari koleksi (GalleryDrawer & FullGalleryView)
+  const handleSelectCollectionElement = (elem) => {
+    if (!elem) return;
+    setCurrentElement(elem);
+    if (elem.prompt) setPrompt(elem.prompt);
+    if (elem.mode) setMode(elem.mode);
+    setIsInpainting(false);
+    setIsHdActive(!!elem.is_hd);
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+
+    if (elem.is_typography) {
+      setActiveTab('typography');
+      setTypographyText(elem.title?.replace(/^3D:\s*/, '') || elem.prompt || '');
+    } else if (elem.is_wallpaper || elem.mode === 'wallpaper') {
+      setActiveTab('wallpaper');
+      setWallpaperPrompt(elem.prompt || '');
+    } else {
+      setActiveTab('objects');
+    }
+    showToast(`Elemen "${elem.title || 'elemen'}" dibuka di meja kanvas!`, 'success');
+  };
+
   // Konversi Elemen Menjadi Format Kurva Vektor (SVG)
   const handleVectorize = async (method = 'ai_vision') => {
     if (!currentElement) return;
@@ -635,6 +696,10 @@ export default function App() {
         svg_code: res.svg_code,
       };
       setCurrentElement(updatedElem);
+      await saveElement(updatedElem);
+      setElements((prev) =>
+        prev.map((item) => (item.id === updatedElem.id ? updatedElem : item))
+      );
       const modeLabel = res.method === 'ai_vision' ? 'Desain Ulang AI' : 'Jiplak Cepat';
       showToast(`Gambar berhasil diubah menjadi format Vektor SVG (${modeLabel}) tanpa batas pembesaran!`, 'success');
     } catch (err) {
@@ -690,6 +755,11 @@ export default function App() {
         prompt: res.prompt_used || `${currentElement.prompt || ''} + ${revisionPrompt}`,
         qc_report: res.qc_report || null,
         created_at: new Date().toISOString(),
+        is_hd: false,
+        dimensions: undefined,
+        original_image_base64: undefined,
+        is_vector: false,
+        svg_code: undefined,
       };
       setCurrentElement(updatedElem);
       setIsInpainting(false);
@@ -859,7 +929,7 @@ export default function App() {
           config={config}
           onShowToast={showToast}
           referenceImage={referenceImage}
-          onSelectReferenceImage={setReferenceImage}
+          onSelectReferenceImage={handleSetReferenceImage}
           referenceSimilarity={referenceSimilarity}
           elementsCount={elements.length}
           onAddNewElement={() => {
@@ -873,25 +943,7 @@ export default function App() {
           {activeTab === 'collection' ? (
             <FullGalleryView
               elements={elements}
-              onSelectElement={(elem) => {
-                setCurrentElement(elem);
-                if (elem.prompt) setPrompt(elem.prompt);
-                if (elem.mode) setMode(elem.mode);
-                setIsInpainting(false);
-                setIsHdActive(!!elem.is_hd);
-                setZoom(1);
-                setPan({ x: 0, y: 0 });
-                if (elem.is_typography) {
-                  setActiveTab('typography');
-                  setTypographyText(elem.title?.replace(/^3D:\s*/, '') || elem.prompt);
-                } else if (elem.is_wallpaper || elem.mode === 'wallpaper') {
-                  setActiveTab('wallpaper');
-                  setWallpaperPrompt(elem.prompt || '');
-                } else {
-                  setActiveTab('objects');
-                }
-                showToast(`Elemen "${elem.title || 'elemen'}" dibuka di meja kanvas!`, 'success');
-              }}
+              onSelectElement={handleSelectCollectionElement}
               onDeleteElement={handleDeleteElement}
               onCopyElement={handleCopyElement}
               onDownloadElement={handleDownloadElement}
@@ -952,7 +1004,7 @@ export default function App() {
                   onChangePan={setPan}
                   onResetZoom={handleResetZoom}
                   referenceImage={referenceImage}
-                  onSelectReferenceImage={setReferenceImage}
+                  onSelectReferenceImage={handleSetReferenceImage}
                   onClearReferenceImage={() => setReferenceImage(null)}
                   referenceSimilarity={referenceSimilarity}
                   onChangeReferenceSimilarity={setReferenceSimilarity}
@@ -971,15 +1023,7 @@ export default function App() {
             onToggleOpen={() => setIsGalleryOpen((prev) => !prev)}
             elements={elements}
             activeElementId={currentElement ? currentElement.id : null}
-            onSelectElement={(elem) => {
-              setCurrentElement(elem);
-              if (elem.prompt) setPrompt(elem.prompt);
-              if (elem.mode) setMode(elem.mode);
-              setIsInpainting(false);
-              setIsHdActive(!!elem.is_hd);
-              setZoom(1);
-              setPan({ x: 0, y: 0 });
-            }}
+            onSelectElement={handleSelectCollectionElement}
             onDeleteElement={handleDeleteElement}
             onCopyElement={handleCopyElement}
             onDownloadElement={handleDownloadElement}

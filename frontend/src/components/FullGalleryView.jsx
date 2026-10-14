@@ -114,6 +114,7 @@ export default function FullGalleryView({
   const handleConfirmSingleDelete = () => {
     if (elementToDelete && onDeleteElement) {
       onDeleteElement(elementToDelete.id);
+      setSelectedIds((prev) => prev.filter((id) => id !== elementToDelete.id));
       setElementToDelete(null);
     }
   };
@@ -135,7 +136,7 @@ export default function FullGalleryView({
 
   const handleConfirmBatchDelete = () => {
     if (onDeleteElement && selectedIds.length > 0) {
-      selectedIds.forEach((id) => onDeleteElement(id));
+      onDeleteElement(selectedIds);
       setSelectedIds([]);
       setIsSelectionMode(false);
       setIsBatchDeleteModalOpen(false);

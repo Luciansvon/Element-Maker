@@ -77,7 +77,7 @@ def _upscale_with_realesrgan(
         try:
             process = subprocess.Popen(
                 cmd,
-                stdout=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE,
                 cwd=str(REALESRGAN_DIR),
             )
@@ -101,12 +101,15 @@ def _upscale_with_realesrgan(
                         except (ValueError, IndexError):
                             pass
 
-            process.wait()
+            process.wait(timeout=120)
 
             if process.returncode != 0:
                 err_msg = "\n".join(stderr_output)
                 raise RuntimeError(f"Real-ESRGAN gagal (kode: {process.returncode}): {err_msg}")
 
+        except subprocess.TimeoutExpired:
+            process.kill()
+            raise RuntimeError("Proses Real-ESRGAN melampaui batas waktu (120 detik).")
         except FileNotFoundError:
             raise RuntimeError("File executable Real-ESRGAN tidak ditemukan.")
 
