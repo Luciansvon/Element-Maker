@@ -219,3 +219,7 @@
         - Mas Bima menegaskan bahwa repositori wajib memiliki dokumentasi `README.md` yang lengkap dan profesional.
         - Mas Bima mengekspektasikan file executable desktop (`Element-Maker.exe`) dapat langsung dipindahkan dan dijalankan dari Desktop tanpa gagal menemukan modul Python atau model AI di folder instalasi proyek.
         - Solusi: Mesin Rust (`lib.rs`) dilengkapi dengan fallback jalur absolut proyek sehingga biner executable dapat diletakkan di Desktop manapun dan tetap otomatis menyalakan server lokal secara hening dan presisi.
+      - **Permintaan Arsip Zip Kode Sumber Murni untuk Audit Gemini App (Temuan 14 Okt 2026)**:
+        - Mas Bima membutuhkan arsip zip yang hanya berisi *pure script* (kode sumber murni) tanpa model AI lokal yang berat (tanpa `isnet-general-use.onnx`, tanpa binary `realesrgan-ncnn-vulkan.exe`, tanpa `models/*.bin`, tanpa `.venv`, tanpa `node_modules`, dan tanpa `target/`).
+        - Tujuannya adalah untuk diunggah langsung ke Gemini App guna keperluan penelaahan dan audit kode secara mandiri.
+        - Solusi: Dibuatkan arsip `Element-Maker-PureScript.zip` langsung di Desktop dengan ukuran sangat ringan (~1 MB) yang berisi seluruh logika React, Tauri Rust, FastAPI, skrip pengujian, dan dokumentasi arsitektur.
